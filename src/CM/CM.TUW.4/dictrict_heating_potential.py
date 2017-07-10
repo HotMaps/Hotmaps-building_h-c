@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on July 7 2017
+Created on July 10 2017
 
 @author: fallahnejad@eeg.tuwien.ac.at
 """
@@ -13,6 +13,13 @@ from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
 from scipy.ndimage import measurements
+'''
+The input for this calculation module is "heat density map" with [GWh/km2]
+unit. The output of this calculation module is set of connected pixels to
+which the potential of that connected pixels in [GWh] is assigned.
+pixel_threshold in [GWh/km2]
+DH_threshold in [GWh/annum]
+'''
 
 
 def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
@@ -61,59 +68,77 @@ def DHRegions(DH, DH_threshold):
     struct = np.ones((3, 3)).astype(int)
     labels, numLabels = measurements.label(DH_noHole, structure=struct)
     # the conditional statement prevents from error in the following code.
-    # This can also be incorporated in order to filter areas smaller than a specific size e.g. 1km2 ~ 100.
-    if labels.size>0:
-        #labels start from 1. Therefore, PotDH should have numLabels+1 elements
+    # This can also be incorporated in order to filter areas smaller than a
+    # specific size e.g. 1km2 ~ 100.
+    if labels.size > 0:
+        # labels start from 1. Therefore, PotDH should have numLabels+1
+        # elements
         PotDH = np.zeros((numLabels+1)).astype(bool)
-        # using sparse matrix indices to swift the calculation. This helps to implement "np.unique" much faster
-        sparseRow,sparseCol = np.nonzero(labels)
-        sparseLabels = labels[sparseRow , sparseCol]
-        sparseDH = DH[sparseRow , sparseCol]
-        # sort sparse values based on sparseLabels. This helps to implement summation process much faster.
-        sortedSparseData = np.asarray(sorted(zip(sparseRow,sparseCol,sparseLabels,sparseDH),key=lambda x:x[2]))
+        # using sparse matrix indices to swift the calculation. This helps to
+        # implement "np.unique" much faster
+        sparseRow, sparseCol = np.nonzero(labels)
+        sparseLabels = labels[sparseRow, sparseCol]
+        sparseDH = DH[sparseRow, sparseCol]
+        # sort sparse values based on sparseLabels. This helps to implement
+        # summation process much faster.
+        sortedSparseData = np.asarray(sorted(zip(sparseRow, sparseCol,
+                                                 sparseLabels, sparseDH),
+                                             key=lambda x: x[2]))
         # find unique values and their counts within the sparseLabels
         unique, counts = np.unique(sparseLabels, return_counts=True)
-        # calculate starting and ending indices of each unique value in order to swift the summation operation.
-        # calculate starting and ending indices of each unique value in order to swift the summation operation.
-        # note that a[st:end] referes to elements of a including "st" and excluding end.
-        # Note: To get the last element of the same type, however, cumsum shoud be subtracted by 1:
-        # (e.g. [1,1,1,1,2,2,2]: hear st for 1 is 0; end for 1 is 4; the last element which is one is 3)
+        '''
+        calculate starting and ending indices of each unique value in order
+        to swift the summation operation. calculate starting and ending
+        indices of each unique value in order to swift the summation
+        operation. Note that a[st:end] refers to elements of a including "st"
+        and excluding end.
+        Note: To get the last element of the same type, however, cumsum shoud
+        be subtracted by 1:
+        (e.g. [1,1,1,1,2,2,2]: hear st for 1 is 0; end for 1 is 4; the last
+        element which is one is 3)
+        '''
         end = np.cumsum(counts)
         st = np.concatenate((np.zeros((1)), end[0:numLabels-1]))
         for i in range(numLabels):
             # sum over sparseDH
-            pot = np.sum(sortedSparseData[st[i]:end[i],3])
+            # input: [GWh/km2] for each ha --> to get potential in GWh it
+            # should be multiplied by 0.01
+            pot = 0.01 * np.sum(sortedSparseData[int(st[i]):int(end[i]), 3])
             if pot >= DH_threshold:
-                # here should be i+1 because labeling starts from one and not from zero
+                # here should be i+1 because labeling starts from one and not
+                # from zero
                 PotDH[i+1] = True
         DH_regions = PotDH[labels]
         return DH_regions
-        
+
 
 def DHPotential(DH_Regions, HD):
     print("Calculate DH potentials")
-    struct = np.ones((3,3)).astype(int)
-    labels , numLabels = measurements.label(DH_Regions,structure=struct)
+    struct = np.ones((3, 3)).astype(int)
+    labels, numLabels = measurements.label(DH_Regions, structure=struct)
     DHPot = np.zeros((numLabels+1)).astype(float)
-    sparseRow,sparseCol = np.nonzero(labels)
-    sparseLabels = labels[sparseRow , sparseCol] #this helps to implement "np.unique" much faster
-    sparseHD = HD[sparseRow , sparseCol]
-    # sort sparse values based on sparseLabels. This helps to implement summation process much faster.
-    sortedSparseData = np.asarray(sorted(zip(sparseRow,sparseCol,sparseLabels,sparseHD),key=lambda x:x[2]))
+    sparseRow, sparseCol = np.nonzero(labels)
+    # This helps to implement "np.unique" much faster
+    sparseLabels = labels[sparseRow, sparseCol]
+    sparseHD = HD[sparseRow, sparseCol]
+    # sort sparse values based on sparseLabels. This helps to implement
+    # summation process much faster.
+    sortedSparseData = np.asarray(sorted(zip(sparseRow, sparseCol,
+                                             sparseLabels, sparseHD),
+                                         key=lambda x: x[2]))
     unique, counts = np.unique(sparseLabels, return_counts=True)
     end = np.cumsum(counts)
     st = np.concatenate((np.zeros((1)), end[0:numLabels-1]))
-    # "dict_" might be usefull when you need to apply area constraint for a DH region.
-    # dict_ = dict(zip(unique, counts))
-
     for i in range(numLabels):
-        DHPot[i+1] = np.sum(sortedSparseData[st[i]:end[i],3])
+        # input: [GWh/km2] for each ha --> to get potential in GWh it
+        # should be multiplied by 0.01
+        DHPot[i+1] = 0.01 * np.sum(sortedSparseData[int(st[i]):int(end[i]), 3])
     DH_Potential = DHPot[labels]
     return DH_Potential
 
 
-def NutsCut(heat_density_map, strd_vector_path, pix_threshold, DH_threshold, outRasterPath):
-    
+def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
+            DH_threshold, outRasterPath):
     cutRastDatasource = gdal.Open(heat_density_map)
     transform = cutRastDatasource.GetGeoTransform()
     minx = transform[0]
@@ -121,43 +146,36 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold, DH_threshold, out
     rasterOrigin = (minx, maxy)
     b11 = cutRastDatasource.GetRasterBand(1)
     arr1 = b11.ReadAsArray().astype(float)
-    
-    DH = arr1 * (arr1>pix_threshold)
+    DH = arr1 * (arr1 > pix_threshold)
     (dimX, dimY) = DH.shape
     DH_Regions = np.zeros((dimX, dimY)).astype(bool)
-
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
     inDataSource = inDriver.Open(strd_vector_path, 0)
     inLayer = inDataSource.GetLayer()
     fminx = fminy = 10**10
     fmaxx = fmaxy = 0
     flag = 0
-    
     for fid in range(inLayer.GetFeatureCount()):
         print(fid)
         fminx = fminy = 10**10
         fmaxx = fmaxy = 0
-        
         inFeature = inLayer.GetFeature(fid)
         geom = inFeature.GetGeometryRef()
-        
         #Get boundaries
         fminx_, fmaxx_, fminy_, fmaxy_ = geom.GetEnvelope()
         fminx = min(fminx_, fminx)
         fminy = min(fminy_, fminy)
         fmaxx = max(fmaxx_, fmaxx)
-        fmaxy = max(fmaxy_, fmaxy)        
-        
+        fmaxy = max(fmaxy_, fmaxy)
         # define exact index that encompasses the feature.
-        lowIndexY = int( (fminx-minx) / 100.0)
-        lowIndexX = int( (maxy-fmaxy) / 100.0)
-        upIndexY = lowIndexY + int( (fmaxx-fminx) / 100.0)
-        upIndexX = lowIndexX + int( (fmaxy-fminy) / 100.0)
+        lowIndexY = int((fminx-minx)/100.0)
+        lowIndexX = int((maxy-fmaxy)/100.0)
+        upIndexY = lowIndexY + int((fmaxx-fminx)/100.0)
+        upIndexX = lowIndexX + int((fmaxy-fminy)/100.0)
         while (minx + upIndexY*100) < fmaxx:
             upIndexY = upIndexY + 1
         while (maxy - upIndexX*100) > fminy:
             upIndexX = upIndexX + 1
-        
         # check if input shapefile exceed the boundaries of input raster file.
         if lowIndexY < 0:
             lowIndexY = 0
@@ -172,34 +190,35 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold, DH_threshold, out
             upIndexX = dimX
             flag = 1
         if flag == 1:
-            print("feature '%s' is out of range of the input heat density map" %str(fid))
+            print("Warning: feature '%s' is out of range of the input" \
+                  "heat density map" %str(fid))
             flag = 0
-
-        # rasterOrigin2 = (minx + lowIndexY*100,maxy - lowIndexX*100)
-        
-        arr_out= DH[lowIndexX:upIndexX,lowIndexY:upIndexY]
+        # rasterOrigin2 = (minx + lowIndexY*100, maxy - lowIndexX*100)
+        arr_out = DH[lowIndexX:upIndexX, lowIndexY:upIndexY]
         DH_Selected_Region = DHRegions(arr_out, DH_threshold)
-        DH_Regions[lowIndexX:upIndexX,lowIndexY:upIndexY] += DH_Selected_Region
+        DH_Regions[lowIndexX:upIndexX,
+                   lowIndexY:upIndexY] += DH_Selected_Region
         arr_out = None
         inFeature = None
-    
-    result = DHPotential(DH_Regions,arr1)
-    array2raster(outRasterPath,rasterOrigin,100,-100,"float32",result,0)
-   
+    result = DHPotential(DH_Regions, arr1)
+    array2raster(outRasterPath, rasterOrigin, 100, -100, "float32", result, 0)
     cutRastDatasource = None
     arr1 = None
 
 
 if __name__ == "__main__":
-    start=time.time()
-    #heat_density_map = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/Au.tif"
-    heat_density_map = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/demand_v2_complete.tif"
-    #strd_vector_path = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/NUTS3.shp"
-    strd_vector_path = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/EU28.shp"
-    outRasterPath = "/home/simulant/ag_lukas/personen/Mostafa/potDH/Pot_EU28_TH30_1.tif"
-    pix_threshold = 0.1
+    start = time.time()
+    heat_density_map = "/home/simulant/ag_lukas/personen/Mostafa/" \
+                       "DHpot/demand_v2_complete.tif"
+    strd_vector_path = "/home/simulant/ag_lukas/personen/Mostafa/" \
+                       "DHpot/EU28.shp"
+    outRasterPath = "/home/simulant/ag_lukas/personen/Mostafa/" \
+                    "potDH/Pot_EU28_TH30_1.tif"
+    # pix_threshold [GWh/km2]
+    pix_threshold = 10
+    # DH_threshold [GWh/a]
     DH_threshold = 30
-    NutsCut(heat_density_map, strd_vector_path, pix_threshold, DH_threshold, outRasterPath)
-    elapsed=time.time()-start
+    NutsCut(heat_density_map, strd_vector_path, pix_threshold,
+            DH_threshold, outRasterPath)
+    elapsed = time.time() - start
     print(elapsed)
-    
