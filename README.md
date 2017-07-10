@@ -7,7 +7,7 @@ The toolbox will facilitate the following tasks on a spatially disaggregated lev
 4. Comparative assessment of supply and demand options and of given scenarios until 2050 regarding e.g. CO2-emissions, costs, share of renewables.
 
 
-## HotMaps-res-potential web service
+## HotMaps-building-hc web service
 ### Description
 [description]
 
@@ -29,53 +29,33 @@ Get Docker from [https://store.docker.com/editions/community/docker-ce-server-ub
 #### On other systems or distributions
 Get the installation procedure from [https://www.docker.com/get-docker](https://www.docker.com/get-docker)
 ### Running Docker image
-#### For docker toolbox (win7 / OS X below Yosemite)
+
 Open a terminal (Docker Quickstart Terminal for Docker toolbox).
 
-Check that everything is working by running the following command:
+For docker toolbox (win7 / OS X below Yosemite) check that everything is working by running the following command:
 
-`docker-machine ip`
+`docker-machine ip` for docker toolbox (win7 / OS X below Yosemite)
 
 This should return the IP of your active Docker machine that we will use later to connect to our web service (e.g. 192.168.99.100).
 
-Change directory to the *docker* directory on this repository:
+For other standard Docker setup run this command to check that it installed correctly `sudo docker --version`
 
-`cd my-git-directory/docker`
+Change directory to the *root* directory on this repository:
 
-Then run `./run-docker-toolbox.sh`
+`cd my-git-directory`
 
-That's it! Now the web service should be up and running.
+Then run `sudo docker build -t hotmaps/building-hc .` (Sudo not needed if using Docker Toolbox.)
 
-To check that everything is working, open a web browser and enter the IP of the Docker machine we retrieved above, **using port 8181**: http://*{your-docker-machine-ip}***:8181**
-
-This should display a simple message with Python version.
-
-Now you can put your own code in the "code" directory of this repository. Note that wgsi.py is the entrypoint of your web service.
-
-#### For Docker on Ubuntu or other UNIX
-Open your terminal
-
-Change directory to the *docker* directory on this repository:
-
-`cd my-git-directory/docker`
-
-Then run `sudo ./run-ubuntu.sh`
+Then run `sudo docker run --name building-hc -p 9006:80 -d hotmaps/building-hc` (Sudo not needed if using Docker Toolbox.)
 
 That's it! Now the web service should be up and running.
 
-To check that everything is working, open a web browser and enter the IP of the Docker machine we retrieved above, **using port 8181**: http://localhost:8181
+To check that everything is working, open a web browser and enter the IP of the Docker machine we retrieved above or localhost if not using docker-machine, **using port 9006**: http://*{your-docker-machine-ip}***:9006**/api
 
-This should display a simple message with Python version.
+This should display the list of methods on your api.
 
-Now you can put your own code in the "code" directory of this repository. Note that wgsi.py is the entrypoint of your web service.
+Now you can put your own code in the "app" directory of this repository.
 
-#### For any other system
-On any other system, just open your terminal where you have access to "docker".
+There is a backbone of the flask-api structure that you can use and adapt to your needs.
 
-Change directory to the *docker* directory on this repository:
-
-`cd my-git-directory/docker`
-
-Then run `docker run -d -v "/absolute/path/to/repository/code:/data" -p 8181:80 -it hotmaps/building_h-c`
-
-To check that everything is working, open a web browser and enter the IP of the Docker machine we retrieved above, **using port 8181**: http://localhost:8181
+Note that wgsi.py is the entrypoint of your web service.
