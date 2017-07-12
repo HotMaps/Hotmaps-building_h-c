@@ -13,14 +13,15 @@ from update_building_layer import update_building_lyr as update
 
 
 def main(process_bool, inputValues):
-    (eu_shp, spec_demand_csv, spec_demand_shp, targetfield, UsefulDemandRaster,
-     inShapefile, outCSV, outShapefile, heatDensityRaster) = inputValues
+    (eu_shp, spec_demand_csv, spec_demand_shp, UsefulDemandRasterPath,
+     UsefulDemandRaster, inShapefile, outCSV, outShapefile,
+     heatDensityRaster, population) = inputValues
     # Process 1: creates a specific demand raster layer. The country names in
     # csv should be similar to the ones in the shapefile.
     if process_bool[0]:
         start = time.time()
-        specific_demand(eu_shp, spec_demand_csv, spec_demand_shp, targetfield,
-                        UsefulDemandRaster)
+        specific_demand(eu_shp, spec_demand_csv, spec_demand_shp,
+                        UsefulDemandRasterPath)
         print('Process 1 took: %0.2f seconds' % (time.time() - start))
     # Process 2: creates a standard csv file from the input shapefile
     if process_bool[1]:
@@ -37,30 +38,33 @@ def main(process_bool, inputValues):
     if process_bool[3]:
         inputCSV = outCSV
         start = time.time()
-        zs(inputCSV, heatDensityRaster)
+        zs(inputCSV, heatDensityRaster, population)
         print('Process 4 took: %0.2f seconds' % (time.time() - start))
 
 if __name__ == "__main__":
     start = time.time()
     region = 'Bistrita'
-    targetfield = 'Resid.'
     process1 = False
     process2 = True
-    process3 = False
+    process3 = True
     process4 = True
+    population = 1000
     project_path = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
                    "NoDemandData/"
     eu_shp = project_path + "EU28.shp"
     spec_demand_csv = project_path + "useful demand.csv"
     spec_demand_shp = project_path + "EnergyUseEU28.shp"
-    UsefulDemandRaster = project_path + "ResidentialUsefulDemand.tif"
+    UsefulDemandRasterPath = project_path
+    ResidentialUsefulDemand = project_path + "ResidentialUsefulDemand.tif"
+    ServiceUsefulDemand = project_path + "ServiceUsefulDemand.tif"
+    UsefulDemandRaster = [ResidentialUsefulDemand, ServiceUsefulDemand]
     inShapefile = project_path + region + "_3035.shp"
     outCSV = project_path + region + ".csv"
     outShapefile = project_path + region + "_new.shp"
     heatDensityRaster = project_path + region + "_HDM.tif"
     process_bool = (process1, process2, process3, process4)
-    inputValues = (eu_shp, spec_demand_csv, spec_demand_shp, targetfield,
-                   UsefulDemandRaster, inShapefile, outCSV, outShapefile,
-                   heatDensityRaster)
+    inputValues = (eu_shp, spec_demand_csv, spec_demand_shp, 
+                   UsefulDemandRasterPath, UsefulDemandRaster, inShapefile,
+                   outCSV, outShapefile, heatDensityRaster, population)
     main(process_bool, inputValues)
     print('The whole process took %0.2f seconds' % (time.time() - start))
