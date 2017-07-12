@@ -137,62 +137,72 @@ def DHPotential(DH_Regions, HD):
     return DH_Potential
 
 
+def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_):
+    fminx = fminy = 10**10
+    fmaxx = fmaxy = 0
+    # Get boundaries
+    fminx = min(fminx_, fminx)
+    fminy = min(fminy_, fminy)
+    fmaxx = max(fmaxx_, fmaxx)
+    fmaxy = max(fmaxy_, fmaxy)
+    # define exact index that encompasses the feature.
+    lowIndexY = int((fminx-minx)/100.0)
+    lowIndexX = int((maxy-fmaxy)/100.0)
+    upIndexY = lowIndexY + int((fmaxx-fminx)/100.0)
+    upIndexX = lowIndexX + int((fmaxy-fminy)/100.0)
+    while (minx + upIndexY*100) < fmaxx:
+        upIndexY = upIndexY + 1
+    while (maxy - upIndexX*100) > fminy:
+        upIndexX = upIndexX + 1
+    # check if input shapefile exceed the boundaries of input raster file.
+    if lowIndexY < 0:
+        lowIndexY = 0
+    if lowIndexX < 0:
+        lowIndexX = 0
+    if upIndexY > dimY:
+        upIndexY = dimY
+    if upIndexX > dimX:
+        upIndexX = dimX
+    return (lowIndexX, upIndexX, lowIndexY, upIndexY)
+
+
+
+
 def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
             DH_threshold, outRasterPath):
+    inDriver = ogr.GetDriverByName("ESRI Shapefile")
+    inDataSource = inDriver.Open(strd_vector_path, 0)
+    inLayer = inDataSource.GetLayer()
+    shp_minX, shp_maxX, shp_minY, shp_maxY = inLayer.GetExtent()
     cutRastDatasource = gdal.Open(heat_density_map)
     transform = cutRastDatasource.GetGeoTransform()
     minx = transform[0]
     maxy = transform[3]
-    rasterOrigin = (minx, maxy)
     b11 = cutRastDatasource.GetRasterBand(1)
     arr1 = b11.ReadAsArray().astype(float)
+    (dimX0, dimY0) = arr1.shape
+    (lowIndexX, upIndexX, lowIndexY, upIndexY) = calc_index(minx, maxy,
+                                                            dimX0, dimY0,
+                                                            shp_minX, shp_maxX,
+                                                            shp_minY, shp_maxY)
+    minx = minx + 100 * lowIndexY
+    maxy = maxy - 100 * lowIndexX
+    rasterOrigin = (minx, maxy)
+    arr1 = arr1[lowIndexX:upIndexX, lowIndexY:upIndexY]
     DH = arr1 * (arr1 > pix_threshold)
     (dimX, dimY) = DH.shape
     DH_Regions = np.zeros((dimX, dimY)).astype(bool)
-    inDriver = ogr.GetDriverByName("ESRI Shapefile")
-    inDataSource = inDriver.Open(strd_vector_path, 0)
-    inLayer = inDataSource.GetLayer()
-    fminx = fminy = 10**10
-    fmaxx = fmaxy = 0
-    flag = 0
     for fid in range(inLayer.GetFeatureCount()):
         print(fid)
-        fminx = fminy = 10**10
-        fmaxx = fmaxy = 0
         inFeature = inLayer.GetFeature(fid)
         geom = inFeature.GetGeometryRef()
-        #Get boundaries
-        fminx_, fmaxx_, fminy_, fmaxy_ = geom.GetEnvelope()
-        fminx = min(fminx_, fminx)
-        fminy = min(fminy_, fminy)
-        fmaxx = max(fmaxx_, fmaxx)
-        fmaxy = max(fmaxy_, fmaxy)
+        # Get boundaries
+        fminx, fmaxx, fminy, fmaxy = geom.GetEnvelope()
         # define exact index that encompasses the feature.
-        lowIndexY = int((fminx-minx)/100.0)
-        lowIndexX = int((maxy-fmaxy)/100.0)
-        upIndexY = lowIndexY + int((fmaxx-fminx)/100.0)
-        upIndexX = lowIndexX + int((fmaxy-fminy)/100.0)
-        while (minx + upIndexY*100) < fmaxx:
-            upIndexY = upIndexY + 1
-        while (maxy - upIndexX*100) > fminy:
-            upIndexX = upIndexX + 1
-        # check if input shapefile exceed the boundaries of input raster file.
-        if lowIndexY < 0:
-            lowIndexY = 0
-            flag = 1
-        if lowIndexX < 0:
-            lowIndexX = 0
-            flag = 1
-        if upIndexY > dimY:
-            upIndexY = dimY
-            flag = 1
-        if upIndexX > dimX:
-            upIndexX = dimX
-            flag = 1
-        if flag == 1:
-            print("Warning: feature '%s' is out of range of the input" \
-                  "heat density map" %str(fid))
-            flag = 0
+        (lowIndexX, upIndexX, lowIndexY, upIndexY) = calc_index(minx, maxy,
+                                                                dimX, dimY,
+                                                                fminx, fmaxx,
+                                                                fminy, fmaxy)
         # rasterOrigin2 = (minx + lowIndexY*100, maxy - lowIndexX*100)
         arr_out = DH[lowIndexX:upIndexX, lowIndexY:upIndexY]
         DH_Selected_Region = DHRegions(arr_out, DH_threshold)

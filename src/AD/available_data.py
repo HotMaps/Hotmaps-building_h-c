@@ -3,10 +3,7 @@ Created on Apr 20, 2017
 
 @author: simulant
 '''
-import AD.heat_density_map.main as DHM
+from potential_dh_area.main import default_hdm
 
-import numpy as np
+heat_density_map = default_hdm()
 
-
-
-heat_density_map = DHM.HDMAP()

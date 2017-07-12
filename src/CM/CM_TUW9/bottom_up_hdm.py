@@ -48,7 +48,7 @@ def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
     outRaster.FlushCache()
 
 
-def zonStat_selectedArea(inputCSV, outRasterPath):
+def zonStat_selectedArea(inputCSV, outRasterPath, population=0):
     '''
     This function calculates the sum of demand within 100 m pixels.
     The pixel will also overlay to the standard fishnet used for the hotmap
@@ -58,6 +58,7 @@ def zonStat_selectedArea(inputCSV, outRasterPath):
     '''
     ifile = pd.read_csv(inputCSV)
     demand = ifile['demand'].values
+    GFA = ifile['GFA'].values
     X = ifile['X_3035'].values
     Y = ifile['Y_3035'].values
     x0 = 100 * np.floor(np.min(X)/100).astype(int)
@@ -89,6 +90,20 @@ def zonStat_selectedArea(inputCSV, outRasterPath):
     # kWh/ha = 10^(-4) * GWh/km2
     sumDem = 0.0001 * sumDem.reshape((yWidth, xWidth))
     array2raster(outRasterPath, rasterOrigin, 100, -100, "float64", sumDem, 0)
+    abs_heat_demand = np.sum(demand)
+    sumGFA = np.sum(GFA)
+    if np.sum(GFA):
+        mean_spec_demand = abs_heat_demand/np.sum(GFA)
+    else:
+        mean_spec_demand = np.nan
+    if population:
+        mean_dem_perCapita = abs_heat_demand/float(population)
+    else:
+        mean_dem_perCapita = np.nan
+    print("Absolute heat demand: %s \n Mean heat demand per capita: %s \n" \
+          "Mean heat demand per heated surface: %s" %(str(abs_heat_demand),
+                                                      str(mean_spec_demand),
+                                                      str(mean_dem_perCapita)))
 
 
 if __name__ == "__main__":
