@@ -9,9 +9,9 @@ This script has been created in the context of the Hotmaps EU project.
 #The CO2 emissions according for the buildings heat supply are calculated. 
 def co2_emissions(energy_demand, efficiency, spec_co2_emissions):
     
-    fed = (energy_demand / efficiency).rename('final_energy_demand')
-    total_emissions=(spec_co2_emissions.multiply(fed,axis=0))
-    specific_emissions=(total_emissions / energy_demand)
+    fed = (energy_demand / efficiency).rename('final energy demand')
+    total_emissions=(fed*spec_co2_emissions).rename('total CO2 emissions')
+    specific_emissions=(total_emissions / energy_demand).rename('specific CO2 emissions')
     
     return (specific_emissions, total_emissions)
 
