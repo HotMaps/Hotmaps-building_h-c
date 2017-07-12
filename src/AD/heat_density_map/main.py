@@ -4,27 +4,22 @@ Created on Apr 20, 2017
 @author: simulant
 '''
 import numpy as np
-
+import gdal
+import pdb
 
 
  
-def HDMAP():
+def HDMAP(file):
     """
     returns heat density map
-    
-    
+
     Output:
-    
-    
-    
     """
     
-    heat_density_map = np.reshape(np.random.rand((120)), (12, 10))
-
+    #heat_density_map = np.reshape(np.random.rand((120)), (12, 10))
+    heat_density_map = file
+    heat_density_map = gdal.Open(heat_density_map)
     return heat_density_map
-
-
-
 
 
 

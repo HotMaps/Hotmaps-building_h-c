@@ -4,11 +4,17 @@ Created on July 10 2017
 
 @author: fallahnejad@eeg.tuwien.ac.at
 """
+import sys
+sys.path.insert(0,'../..')
 import time
 import gdal
 import ogr
 import osr
 import numpy as np
+import pdb
+
+import AD.available_data as AD_ 
+
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
@@ -20,7 +26,8 @@ which the potential of that connected pixels in [GWh] is assigned.
 pixel_threshold in [GWh/km2]
 DH_threshold in [GWh/annum]
 '''
-
+# variable, to suppres print
+verbose = True
 
 def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
                  dataType, array, noDataValue):
@@ -113,7 +120,8 @@ def DHRegions(DH, DH_threshold):
 
 
 def DHPotential(DH_Regions, HD):
-    print("Calculate DH potentials")
+    if verbose:
+        print("Calculate DH potentials")
     struct = np.ones((3, 3)).astype(int)
     labels, numLabels = measurements.label(DH_Regions, structure=struct)
     DHPot = np.zeros((numLabels+1)).astype(float)
@@ -139,7 +147,7 @@ def DHPotential(DH_Regions, HD):
 
 def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
             DH_threshold, outRasterPath):
-    cutRastDatasource = gdal.Open(heat_density_map)
+    cutRastDatasource = heat_density_map
     transform = cutRastDatasource.GetGeoTransform()
     minx = transform[0]
     maxy = transform[3]
@@ -156,7 +164,8 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
     fmaxx = fmaxy = 0
     flag = 0
     for fid in range(inLayer.GetFeatureCount()):
-        print(fid)
+        if verbose:
+            print("Status: %s %% completed" %(((fid+1) / inLayer.GetFeatureCount())*100))
         fminx = fminy = 10**10
         fmaxx = fmaxy = 0
         inFeature = inLayer.GetFeature(fid)
@@ -189,7 +198,7 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
         if upIndexX > dimX:
             upIndexX = dimX
             flag = 1
-        if flag == 1:
+        if flag == 1 and verbose:
             print("Warning: feature '%s' is out of range of the input" \
                   "heat density map" %str(fid))
             flag = 0
@@ -200,20 +209,19 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
                    lowIndexY:upIndexY] += DH_Selected_Region
         arr_out = None
         inFeature = None
+        
     result = DHPotential(DH_Regions, arr1)
     array2raster(outRasterPath, rasterOrigin, 100, -100, "float32", result, 0)
     cutRastDatasource = None
     arr1 = None
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":   
     start = time.time()
-    heat_density_map = "/home/simulant/ag_lukas/personen/Mostafa/" \
-                       "DHpot/demand_v2_complete.tif"
-    strd_vector_path = "/home/simulant/ag_lukas/personen/Mostafa/" \
-                       "DHpot/EU28.shp"
+    heat_density_map = AD_.heat_density_map
+    strd_vector_path = AD_.strd_vector_path
     outRasterPath = "/home/simulant/ag_lukas/personen/Mostafa/" \
-                    "potDH/Pot_EU28_TH30_1.tif"
+                    "potDH/Austria.tif"
     # pix_threshold [GWh/km2]
     pix_threshold = 10
     # DH_threshold [GWh/a]
