@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on July 10 2017
+Created on July 11 2017
 
 @author: fallahnejad@eeg.tuwien.ac.at
 """
+import os
 import time
 import gdal
 import ogr
@@ -13,6 +14,7 @@ from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
 from scipy.ndimage import measurements
+from src.AD.heat_density_map.main import HDMAP
 '''
 The input for this calculation module is "heat density map" with [GWh/km2]
 unit. The output of this calculation module is set of connected pixels to
@@ -20,6 +22,7 @@ which the potential of that connected pixels in [GWh] is assigned.
 pixel_threshold in [GWh/km2]
 DH_threshold in [GWh/annum]
 '''
+verbose = False
 
 
 def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
@@ -113,7 +116,8 @@ def DHRegions(DH, DH_threshold):
 
 
 def DHPotential(DH_Regions, HD):
-    print("Calculate DH potentials")
+    if verbose:
+        print("Calculate DH potentials")
     struct = np.ones((3, 3)).astype(int)
     labels, numLabels = measurements.label(DH_Regions, structure=struct)
     DHPot = np.zeros((numLabels+1)).astype(float)
@@ -166,8 +170,6 @@ def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_):
     return (lowIndexX, upIndexX, lowIndexY, upIndexY)
 
 
-
-
 def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
             DH_threshold, outRasterPath):
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
@@ -193,7 +195,8 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
     (dimX, dimY) = DH.shape
     DH_Regions = np.zeros((dimX, dimY)).astype(bool)
     for fid in range(inLayer.GetFeatureCount()):
-        print(fid)
+        if verbose:
+            print(fid)
         inFeature = inLayer.GetFeature(fid)
         geom = inFeature.GetGeometryRef()
         # Get boundaries
@@ -218,17 +221,20 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
 
 if __name__ == "__main__":
     start = time.time()
-    heat_density_map = "/home/simulant/ag_lukas/personen/Mostafa/" \
-                       "DHpot/demand_v2_complete.tif"
-    strd_vector_path = "/home/simulant/ag_lukas/personen/Mostafa/" \
-                       "DHpot/EU28.shp"
-    outRasterPath = "/home/simulant/ag_lukas/personen/Mostafa/" \
-                    "potDH/Pot_EU28_TH30_1.tif"
+    os.chdir('../..')
+    data_warehouse = os.getcwd() + os.sep + 'AD/data_warehouse'
+    heat_density_map = HDMAP(data_warehouse)
+    region = data_warehouse + os.sep + 'AT.shp'
+    os.chdir('..')
+    output_dir = os.getcwd() + os.sep + 'Outputs'
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    outRasterPath = output_dir + os.sep + 'Pot_AT_TH30.tif'
     # pix_threshold [GWh/km2]
     pix_threshold = 10
     # DH_threshold [GWh/a]
     DH_threshold = 30
-    NutsCut(heat_density_map, strd_vector_path, pix_threshold,
-            DH_threshold, outRasterPath)
+    NutsCut(heat_density_map, region, pix_threshold, DH_threshold,
+            outRasterPath)
     elapsed = time.time() - start
     print(elapsed)
