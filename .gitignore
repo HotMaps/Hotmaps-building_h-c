@@ -10,3 +10,12 @@ src/AD/data_warehouse/
 src/CM/CM_TUW4/\.metadata/
 
 src/CM/CM_TUW9/\.metadata/
+
+
+*.pyc
+
+\.pydevproject
+
+\.project
+
+\.settings/org\.eclipse\.core\.resources\.prefs
