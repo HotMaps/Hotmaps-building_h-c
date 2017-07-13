@@ -5,23 +5,22 @@ Created on July 6 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import time
-from bottom_up_hdm import zonStat_selectedArea as zs
-from specific_demand import specific_demand
-from shp2csv import shp2csv
-from update_building_layer import update_building_lyr as update
+from src.CM.CM_TUW9.bottom_up_hdm import zonStat_selectedArea as zs
+from src.CM.CM_TUW9.specific_demand import specific_demand
+from src.CM.CM_TUW9.shp2csv import shp2csv
+from src.CM.CM_TUW9.update_building_layer import update_building_lyr as update
 ''' This module calls other calculation modules for the BUHDM'''
 
 
 def main(process_bool, inputValues):
-    (eu_shp, spec_demand_csv, spec_demand_shp, UsefulDemandRasterPath,
+    (eu_shp, spec_demand_csv, UsefulDemandRasterPath,
      UsefulDemandRaster, inShapefile, outCSV, outShapefile,
      heatDensityRaster, population) = inputValues
     # Process 1: creates a specific demand raster layer. The country names in
     # csv should be similar to the ones in the shapefile.
     if process_bool[0]:
         start = time.time()
-        specific_demand(eu_shp, spec_demand_csv, spec_demand_shp,
-                        UsefulDemandRasterPath)
+        specific_demand(eu_shp, spec_demand_csv, UsefulDemandRasterPath)
         print('Process 1 took: %0.2f seconds' % (time.time() - start))
     # Process 2: creates a standard csv file from the input shapefile
     if process_bool[1]:
@@ -35,11 +34,10 @@ def main(process_bool, inputValues):
         update(inputCSV, inShapefile, outShapefile)
         print('Process 3 took: %0.2f seconds' % (time.time() - start))
     # Process 4: generates a heat density map
-    if process_bool[3]:
-        inputCSV = outCSV
-        start = time.time()
-        zs(inputCSV, heatDensityRaster, population)
-        print('Process 4 took: %0.2f seconds' % (time.time() - start))
+    inputCSV = outCSV
+    start = time.time()
+    zs(inputCSV, heatDensityRaster, population)
+    print('Process 4 took: %0.2f seconds' % (time.time() - start))
 
 if __name__ == "__main__":
     start = time.time()
@@ -53,7 +51,6 @@ if __name__ == "__main__":
                    "NoDemandData/"
     eu_shp = project_path + "EU28.shp"
     spec_demand_csv = project_path + "useful demand.csv"
-    spec_demand_shp = project_path + "EnergyUseEU28.shp"
     UsefulDemandRasterPath = project_path
     ResidentialUsefulDemand = project_path + "ResidentialUsefulDemand.tif"
     ServiceUsefulDemand = project_path + "ServiceUsefulDemand.tif"
@@ -62,9 +59,9 @@ if __name__ == "__main__":
     outCSV = project_path + region + ".csv"
     outShapefile = project_path + region + "_new.shp"
     heatDensityRaster = project_path + region + "_HDM.tif"
-    process_bool = (process1, process2, process3, process4)
-    inputValues = (eu_shp, spec_demand_csv, spec_demand_shp, 
-                   UsefulDemandRasterPath, UsefulDemandRaster, inShapefile,
-                   outCSV, outShapefile, heatDensityRaster, population)
+    process_bool = (process1, process2, process3)
+    inputValues = (eu_shp, spec_demand_csv, UsefulDemandRasterPath,
+                   UsefulDemandRaster, inShapefile, outCSV, outShapefile,
+                   heatDensityRaster, population)
     main(process_bool, inputValues)
     print('The whole process took %0.2f seconds' % (time.time() - start))
