@@ -11,6 +11,7 @@ import numpy as np
 import ogr
 import osr
 import pandas as pd
+import shutil
 '''
 - This code reads the CSV file containing specific demand values of buildings
 in each EU country [kWh/m2/a] and creates a shapefile with a NUTS3 code field
@@ -54,13 +55,17 @@ def gdal_rasterize(vector_fn, raster_fn, targetfield, pixel_size=100,
     source_ds = None
 
 
-def specific_demand(inShp, inCSV, outShapefile, outRasterPath):
+def specific_demand(inShp, inCSV, outRasterPath):
     '''
     This function reads the input CSV file and save the specific demand values
     into the EU28 shapefile. The obtained shapefile is passed to the rasterize
     function to generate a raster for specific demand values both for
     residential and service sectors.
     '''
+    temp_dir = os.getcwd() + os.sep + 'temp'
+    if not os.path.exists(temp_dir):
+        os.mkdir(temp_dir)
+    outShapefile = temp_dir + os.sep + 'EnergyUseEU28.shp'
     # target fields are fields in CSV that are used to create raster with them
     targetfield = ['Residential', 'Service']
     # dictionary for determination of field types. For easing purposes, integer
@@ -124,6 +129,7 @@ def specific_demand(inShp, inCSV, outShapefile, outRasterPath):
             field = field[0:10]
         gdal_rasterize(outShapefile, outRasterPath + os.sep + name +
                        'UsefulDemand.tif', field)
+    shutil.rmtree(temp_dir)
 
 if __name__ == "__main__":
     start = time.time()
@@ -131,9 +137,7 @@ if __name__ == "__main__":
             "NoDemandData/useful demand.csv"
     inShp = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
             "NoDemandData/EU28.shp"
-    outShapefile = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                   "NoDemandData/EnergyUseEU28.shp"
     outRasterPath = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1" \
                     "/NoDemandData"
-    specific_demand(inShp, inCSV, outShapefile, outRasterPath)
+    specific_demand(inShp, inCSV, outRasterPath)
     print(time.time() - start)
