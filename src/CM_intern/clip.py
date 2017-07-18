@@ -1,0 +1,222 @@
+from osgeo import gdal, gdalnumeric, ogr, osr
+from PIL import Image, ImageDraw
+import os
+import numpy as np
+import time
+
+
+def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
+                 dataType, array, noDataValue):
+    '''This function rasterizes the input numpy array '''
+    # conversion of data types from numpy to gdal
+    dict_varTyp = {"int8":      gdal.GDT_Byte,
+                   "int16":     gdal.GDT_Int16,
+                   "int32":     gdal.GDT_Int32,
+                   "uint16":    gdal.GDT_UInt16,
+                   "uint32":    gdal.GDT_UInt32,
+                   "float32":   gdal.GDT_Float32,
+                   "float64":   gdal.GDT_Float64}
+    cols = array.shape[1]
+    rows = array.shape[0]
+    originX = rasterOrigin[0]
+    originY = rasterOrigin[1]
+    driver = gdal.GetDriverByName('GTiff')
+    outRaster = driver.Create(outRasterPath, cols, rows, 1,
+                              dict_varTyp[dataType], ['compress=LZW'])
+    outRaster.SetGeoTransform((originX, pixelWidth, 0,
+                               originY, 0, pixelHeight))
+    outRasterSRS = osr.SpatialReference()
+    outRasterSRS.ImportFromEPSG(3035)
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outRaster.GetRasterBand(1).SetNoDataValue(noDataValue)
+    outRaster.GetRasterBand(1).WriteArray(array)
+    outRaster.FlushCache()
+
+
+def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999):
+    '''
+    Clips a raster (given as either a gdal.Dataset or as a numpy.array
+    instance) to a polygon layer provided by a Shapefile (or other vector
+    layer). If a numpy.array is given, a "GeoTransform" must be provided
+    (via dataset.GetGeoTransform() in GDAL). Returns an array. Clip features
+    can be multi-part geometry and with interior ring inside them.
+    Modified version of the code provided in:
+    karthur.org/2015/clipping-rasters-in-python.html
+
+    #clip-a-geotiff-with-shapefile
+
+    Arguments:
+        rast            A gdal.Dataset or a NumPy array
+        features_path   The path to the clipping layer
+        gt              An optional GDAL GeoTransform to use instead
+        nodata          The NoData value; defaults to -9999.
+    '''
+
+    def image_to_array(i):
+        '''
+        Converts a Python Imaging Library (PIL) array to a gdalnumeric image.
+        '''
+        a = gdalnumeric.fromstring(i.tobytes(), 'b')
+        a.shape = i.im.size[1], i.im.size[0]
+        return a
+
+    def world_to_pixel(geo_matrix, x, y):
+        '''
+        Uses a gdal geomatrix (gdal.GetGeoTransform()) to calculate
+        the pixel location of a geospatial coordinate; from:
+        http://pcjericks.github.io/py-gdalogr-cookbook/raster_layers.html
+
+        clip-a-geotiff-with-shapefile
+        '''
+        ulX = geo_matrix[0]
+        ulY = geo_matrix[3]
+        xDist = geo_matrix[1]
+        yDist = geo_matrix[5]
+        rtnX = geo_matrix[2]
+        rtnY = geo_matrix[4]
+        pixel = int((x - ulX) / xDist)
+        line = int((ulY - y) / xDist)
+        return (pixel, line)
+
+    # Can accept either a gdal.Dataset or numpy.array instance
+    if not isinstance(rast, np.ndarray):
+        gt = rast.GetGeoTransform()
+        rast = rast.ReadAsArray()
+
+    # Create an OGR layer from a boundary shapefile
+    features = ogr.Open(features_path)
+    if features.GetDriver().GetName() == 'ESRI Shapefile':
+        temp = os.path.split(os.path.splitext(features_path)[0])
+        lyr = features.GetLayer(temp[1])
+    else:
+        lyr = features.GetLayer()
+    for fid in range(lyr.GetFeatureCount()):
+        '''
+        if fid != 110:
+            continue
+        '''
+        poly = lyr.GetFeature(fid)
+        geom = poly.GetGeometryRef()
+        # Convert the feature extent to image pixel coordinates
+        minX, maxX, minY, maxY = geom.GetEnvelope()
+        ulX, ulY = world_to_pixel(gt, minX, maxY)
+        lrX, lrY = world_to_pixel(gt, maxX, minY)
+        # Calculate the pixel size of the new image
+        pxWidth = int(lrX - ulX)
+        pxHeight = int(lrY - ulY)
+        # If the clipping features extend out-of-bounds and ABOVE the raster...
+        if gt[3] < maxY:
+            # In such a case... ulY ends up being negative--can't have that!
+            iY = ulY
+            ulY = 0
+        try:
+            clip = rast[:, ulY:lrY, ulX:lrX]
+            clip_complete = np.zeros_like(clip, clip.dtype)
+        except IndexError:
+            clip = rast[ulY:lrY, ulX:lrX]
+            clip_complete = np.zeros_like(clip, clip.dtype)
+        geometry_counts = geom.GetGeometryCount()
+        # perform the process for multi-part features
+        for i in range(geometry_counts):
+            # Multi-band image?
+            try:
+                clip = rast[:, ulY:lrY, ulX:lrX]
+            except IndexError:
+                clip = rast[ulY:lrY, ulX:lrX]
+            # Create a new geomatrix for the image
+            gt2 = list(gt)
+            gt2[0] = gt2[1]*int(minX/gt2[1])
+            gt2[3] = gt2[1]*int(maxY/gt2[1])
+            if gt2[3] < maxY:
+                gt2[3] = gt2[1] * int(maxY/gt2[1] + 1)
+            # Map points to pixels for drawing the boundary on a blank 8-bit,
+            # black and white, mask image.
+            points = []
+            pixels = []
+            # check multi-part geometries
+            if geometry_counts > 1:
+                geom1 = geom.GetGeometryRef(i)
+                # check multi-part geometry with interior ring
+                if geom1.GetGeometryName() == 'LINEARRING':
+                    pts = geom1
+                else:
+                    # get outer ring of polygon
+                    pts = geom1.GetGeometryRef(0)
+                # print(geom1.GetGeometryName() + ' ' + pts.GetGeometryName())
+            else:
+                # get outer ring of polygon
+                pts = geom.GetGeometryRef(0)
+            for p in range(pts.GetPointCount()):
+                points.append((pts.GetX(p), pts.GetY(p)))
+            for p in points:
+                pixels.append(world_to_pixel(gt2, p[0], p[1]))
+            raster_poly = Image.new('L', (pxWidth, pxHeight), 1)
+            rasterize = ImageDraw.Draw(raster_poly)
+            # Fill with zeroes
+            rasterize.polygon(pixels, 0)
+            # If the clipping features extend out-of-bounds and ABOVE the
+            # raster
+            if gt[3] < maxY:
+                # The clip features were "pushed down" to match the bounds of
+                # the raster; this step "pulls" them back up
+                premask = image_to_array(raster_poly)
+                # We slice out the piece of our clip features that are
+                # "off the map"
+                mask = np.ndarray((premask.shape[-2] - abs(iY),
+                                   premask.shape[-1]), premask.dtype)
+                mask[:] = premask[abs(iY):, :]
+                # Then fill in from the bottom
+                mask.resize(premask.shape, refcheck=False)
+                # Most importantly, push the clipped piece down
+                gt2[3] = maxY - (maxY - gt[3])
+            else:
+                mask = image_to_array(raster_poly)
+            # Clip the image using the mask
+            try:
+                clip = gdalnumeric.choose(mask, (clip, nodata))
+            # If the clipping features extend out-of-bounds and BELOW
+            # the raster
+            except ValueError:
+                # We have to cut the clipping features to the raster!
+                rshp = list(mask.shape)
+                if mask.shape[-2] != clip.shape[-2]:
+                    rshp[0] = clip.shape[-2]
+                if mask.shape[-1] != clip.shape[-1]:
+                    rshp[1] = clip.shape[-1]
+                mask.resize(*rshp, refcheck=False)
+                clip = gdalnumeric.choose(mask, (clip, nodata))
+            m1, n1 = np.nonzero(clip)
+            clip_stack = set(list(zip(m1, n1)))
+            m2, n2 = np.nonzero(clip_complete)
+            clip_complete_stack = set(list(zip(m2, n2)))
+            intersect_clip = clip_complete_stack.intersection(clip_stack)
+            if len(intersect_clip) == 0:
+                clip_complete = clip_complete + clip
+            else:
+                clip_complete = clip_complete - clip
+            mask = None
+            premask = None
+            raster_poly = None
+            rasterize = None
+            geom1 = None
+            pts = None
+            gt3 = gt2
+            gt2 = None
+            clip = None
+        nuts_region = str(poly.GetField(0))
+        demand = np.sum(clip_complete) * 0.01
+        print('Total demand in nuts region %s is %0.1f GWh' %(nuts_region, demand))
+        #outRasterPath = outRasterDir + os.sep + 'feature_' + str(fid) + '.tif'
+        #array2raster(outRasterPath, (gt3[0], gt3[3]), gt3[1], gt3[5],
+        #             str(clip_complete.dtype), clip_complete, 0)
+
+if __name__ == '__main__':
+    start = time.time()
+    features_path = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/NUTS3.shp"
+    raster = "/home/simulant/ag_lukas/personen/Mostafa/" \
+             "DHpot/top_down_heat_density_map_v2.tif"
+    nodata = 0
+    rast = gdal.Open(raster)
+    outRasterDir = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/AT"
+    clip_raster(rast, features_path, outRasterDir, nodata=0)
+    print(time.time() - start)
