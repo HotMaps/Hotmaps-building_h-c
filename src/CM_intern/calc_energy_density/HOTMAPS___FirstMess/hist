@@ -1,0 +1,1000 @@
+ 1020  screen -ls
+ 1021  screen -S SaraP2H
+ 1022  cd projects/zebra/invert/
+ 1023  ./zebra_run_eelab_agne.sh
+ 1024  cd projects/zebra/invert/
+ 1025  ./zebra_run_eelab_agne.sh
+ 1026  cd projects/zebra/invert/
+ 1027  ./zebra_run_eelab_AUT.sh 
+ 1028  ./zebra_run_eelab_AUT.sh 
+ 1029  ./run_ModellierungFW.sh
+ 1030  cd projects/zebra/invert/
+ 1031  ./zebra_run_eelab_agne.sh
+ 1032  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c SVK
+ 1033  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c DNK
+ 1034  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c AUT
+ 1035  screen -ls
+ 1036  screen -R SaraMatlabTarifmodelle
+ 1037  screen -ls
+ 1038  screen -R SaraMatlab
+ 1039  screen -ls
+ 1040  screen -R SaraP2H
+ 1041  screen -ls
+ 1042  screen -X -S SaraTestMatlab kill
+ 1043  screen -S SaraMatlabTarifmodelle
+ 1044  screen -ls
+ 1045  screen -R SaraMatlabTarifmodelle
+ 1046  screen -ls
+ 1047  screen -R SaraMatlabTarifmodelle
+ 1048  screen -R SaraP2H
+ 1049  screen -ls
+ 1050  screen -R SaraMatlab
+ 1051  ./run_P2H.sh 
+ 1052  screen -ls
+ 1053  screen -R SaraP2H
+ 1054  screen -ls
+ 1055  screen -R SaraP2H
+ 1056  screen -ls
+ 1057  screen -ls
+ 1058  screen -R SaraMatlabTarifmodelle
+ 1059  screen -ls
+ 1060  screen -R SaraMatlab
+ 1061  cd projects/michimatlab/
+ 1062  ./run_model_no_nuc.sh 
+ 1063  ./run_ModellierungFWTarifmodelle.sh
+ 1064  screen -ls
+ 1065  screen -R SaraMatlab
+ 1066  screen -ls
+ 1067  screen -X -S SaraMatlab kill
+ 1068  screen -ls
+ 1069  screen -R SaraMatlabTarifmodelle
+ 1070  ./run_ModellierungFW.sh
+ 1071  top
+ 1072  screen -ls
+ 1073  screen -X -S SaraMatlab kill
+ 1074  screen -ls
+ 1075  screen -S SaraTarifmodelle
+ 1076  screen -ls
+ 1077  screen -x zebra
+ 1078  screen -xzebra
+ 1079  screen -x zebra
+ 1080  screen -ls
+ 1081  screen -x zebra
+ 1082  screen -x zebra_aut
+ 1083  screen -ls
+ 1084  screen -R SaraTarifmodelle
+ 1085  screen -ls
+ 1086  screen -R SaraTarifmodelle
+ 1087  screen -ls
+ 1088  screen -x zebra
+ 1089  sreen -x zebra_deu
+ 1090  sreen -S zebra_dnk
+ 1091  screen -x zebra
+ 1092  screen -S zebra_dnk
+ 1093  screen -ls
+ 1094  screen -x zebra_aut
+ 1095  screen -ls
+ 1096  screen -x zebra_aut
+ 1097  screen -ls
+ 1098  screen -x zebra_aut
+ 1099  cd projects/zebra/invert/
+ 1100  ./zebra_run_eelab_AUT.sh 
+ 1101  screen -ls
+ 1102  screen -R SaraTarifmodelle
+ 1103  screen -ls
+ 1104  screen -R SaraTarifmodelle
+ 1105  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c AUT
+ 1106  screen -ls
+ 1107  screen -x zebra_aut
+ 1108  screen -ls
+ 1109  screen -x zebra_aut 
+ 1110  screen -ls
+ 1111  screen -x zebra_aut
+ 1112  screen -ls
+ 1113  screen -R SaraTarifmodelle
+ 1114  screen -ls
+ 1115  screen -x zebra_aut
+ 1116  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c AUT -s 47421958107
+ 1117  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c AUT
+ 1118  cd projects/zebra/invert/
+ 1119  ./zebra_run_eelab_agne.sh
+ 1120  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c FRA
+ 1121  cd projects/zebra/invert/
+ 1122  ./zebra_run_eelab_agne.sh
+ 1123  cd projects/michimatlab/
+ 1124  ./run_model.sh
+ 1125  python2.7 ~/postanalysis/postAnalysisPython/sql_queries/sql_queries.py --db ee_lab_zebra -c FRA
+ 1126  top
+ 1127  cd projects/zebra/invert/
+ 1128  ./zebra_run_eelab_agne.sh
+ 1129  screen -ls
+ 1130  screen -x zebra_aut
+ 1131  top
+ 1132  screen -ls
+ 1133  screen -S SaraP2H
+ 1134  screen -ls
+ 1135  screen -R SaraP2H
+ 1136  cd projects/zebra/invert/
+ 1137  ./zebra_run_eelab_agne.sh
+ 1138  screen -ls
+ 1139  screen -R SaraP2H
+ 1140  top
+ 1141  cd projects/EnSzen2017/
+ 1142  ./run_invert_aut.sh
+ 1143  2042,exit
+ 1144  exit
+ 1145  top
+ 1146  cd projects/EnSzen2017/
+ 1147  ./run_invert_aut.sh
+ 1148  sudo apt-get upgrade install
+ 1149  sudo apt-get install --upgrade
+ 1150  sudo apt-get install upgrade
+ 1151  sudo apt-get update
+ 1152  sudo apt-get upgrade --install
+ 1153  sudo apt-get upgrade -install
+ 1154  sudo apt-get--upgrade --install
+ 1155  sudo apt-get --upgrad
+ 1156  sudo apt-get upgrade
+ 1157  ./run_P2H.sh 
+ 1158  screen -ls
+ 1159  screen -X -S SaraP2H
+ 1160  screen -X -S SaraP2H kill
+ 1161  screen -S SaraP2HURBEM
+ 1162  screen -ls
+ 1163  screen -R SaraP2HURBEM
+ 1164  screen -ls
+ 1165  screen -S SaraP2HNew
+ 1166  screen -ls
+ 1167  screen -R SaraP2HNew
+ 1168  screen -ls
+ 1169  screen -x zebra_aut
+ 1170  screen -ls
+ 1171  screen -x zebra_aut
+ 1172  screen -ls
+ 1173  screen -x zebra_aut
+ 1174  screen -ls
+ 1175  screen -x zebra_aut
+ 1176  cd screen -ls
+ 1177  screen -ls
+ 1178  screen -x zebra_aut
+ 1179  screen -ls
+ 1180  screen -R SaraP2HNew
+ 1181  screen -ls
+ 1182  screen -S SaraP2HAll
+ 1183  ./run_P2H.sh
+ 1184  screen -ls
+ 1185  screen -R SaraP2HAll
+ 1186  screen -ls
+ 1187  screen -X -S SaraP2HAll kill
+ 1188  screen -ls
+ 1189  screen -R SaraP2HNew
+ 1190  screen -ls
+ 1191  screen -R SaraP2HNew
+ 1192  top
+ 1193  cd projects/zebra/invert/
+ 1194  ./zebra_run__refur_eelab_agne.sh 
+ 1195  top
+ 1196  cd projects/zebra/invert/
+ 1197  ./zebra_run_eelab_agne.sh
+ 1198  cd projects/cost_curves_lithuania/
+ 1199  ./cost_curves_lithuania_run_eelab_agne.sh 
+ 1200  cd projects/cost_curves_lithuania/
+ 1201  ./cost_curves_lithuania_run_eelab_agne.sh 
+ 1202  top
+ 1203  matlab
+ 1204  top
+ 1205  who
+ 1206  sudo reboot now
+ 1207  ./run_P2H.sh
+ 1208  cd projects/zebra/invert/
+ 1209  ./zebra_run_eelab_agne.sh
+ 1210  ./zebra_run_eelab_AUT.sh 
+ 1211  ./zebra_run_eelab_AUT.sh 
+ 1212  ./zebra_run_eelab_agne.sh
+ 1213  ./zebra_run_eelab_agne.sh
+ 1214  ./zebra_run_eelab_agne.sh
+ 1215  ./zebra_run_eelab_AUT.sh 
+ 1216  ./zebra_run_eelab_AUT.sh 
+ 1217  ./zebra_run_eelab_agne.sh
+ 1218  ./zebra_run_eelab_agne.sh
+ 1219  ./zebra_run__refur_eelab_agne.sh 
+ 1220  ./zebra_run_eelab_agne.sh
+ 1221  ./zebra_run__refur_eelab_agne.sh 
+ 1222  ./zebra_run_eelab_agne.sh
+ 1223  ./zebra_run__refur_eelab_agne.sh 
+ 1224  ./run_P2HURBEM.sh
+ 1225  cd projects/zebra/invert/
+ 1226  ./zebra_run_eelab_agne.sh
+ 1227  cd projects/zebra/invert/
+ 1228  ./zebra_run_eelab_AUT.sh 
+ 1229  ./zebra_run_eelab_AUT.sh 
+ 1230  ./zebra_run_eelab_agne.sh
+ 1231  ./zebra_run_eelab_agne.sh
+ 1232  ./zebra_run_eelab_agne.sh
+ 1233  ./zebra_run_eelab_agne.sh
+ 1234  cd projects/zebra/invert/
+ 1235  ./zebra_run_eelab_agne.sh
+ 1236  exit
+ 1237  cd projects/EnSzen2017/
+ 1238  ./run_invert_aut.sh
+ 1239  exit
+ 1240  screen -ls
+ 1241  screen -S SaraP2HURBEM
+ 1242  cd projects/EnSzen2017/
+ 1243  ./run_invert_aut.sh
+ 1244  exit
+ 1245  ls -l
+ 1246  ls projects/
+ 1247  ls -l
+ 1248  top
+ 1249  screen -ls
+ 1250  screen -R saraP2HURBEM
+ 1251  screen -ls
+ 1252  screen -X -S saraP2HURBEM kill
+ 1253  screen -ls
+ 1254  screen -R SaraP2HURBEM
+ 1255  screen -ls
+ 1256  screen -R SaraP2HURBEM
+ 1257  cd projects/EnSzen2017/
+ 1258  vi +#./run_invert_aut.sh
+ 1259  vi ./run_invert_aut.sh
+ 1260  ./run_invert_aut.sh
+ 1261  screen -ls
+ 1262  screen -R SaraP2HURBEM
+ 1263  screen -ls
+ 1264  screen -R SaraP2HURBEM
+ 1265  screen -ls
+ 1266  screen -R SaraP2HURBEM
+ 1267  screen -ls
+ 1268  screen -S SaraAdaptedClimate
+ 1269  screen -ls
+ 1270  screen -R SaraAdaptedClimate
+ 1271  screen -ls
+ 1272  screen -R SaraP2HURBEM
+ 1273  screen -ls
+ 1274  screen -r SaraAdaptedClimate
+ 1275  screen -ls
+ 1276  screen -R SaraAdaptedClimate
+ 1277  screen -ls
+ 1278  screen -R SaraAdaptedClimate
+ 1279  screen -ls
+ 1280  screen -R SaraP2HURBEM
+ 1281  cd projects/basisbioenergy.eu/
+ 1282  ls
+ 1283  make process
+ 1284  vim process_downloads.py 
+ 1285  ls
+ 1286  python process_pumpmills.py
+ 1287  ls
+ 1288  ls download
+ 1289  vim process_pumpmills.py
+ 1290  ls
+ 1291  vim process_downloads.py 
+ 1292  ls
+ 1293  cat readme.txt 
+ 1294  ls
+ 1295  vim process_woodchip_energy_plant.py
+ 1296  grep "process_woodchip" . -iIR
+ 1297  vim download.py 
+ 1298  ls
+ 1299  cat Makefile 
+ 1300  make
+ 1301  make download
+ 1302  python2 download.py
+ 1303  ls
+ 1304  ls download
+ 1305  ls download/pulpmills/
+ 1306  vim download.py 
+ 1307  rm -r download/pumpmills/
+ 1308  ls
+ 1309  mv process_pumpmills.py process_pulpmills.py
+ 1310  ls
+ 1311  vim process_pulpmills.py 
+ 1312  python2 download.py
+ 1313  vim process_pulpmills.py
+ 1314  python2 download.py
+ 1315  vim process_pu
+ 1316  ls
+ 1317  rm *pyc
+ 1318  vim process_pulpmills.py 
+ 1319  vim download/pulpmills/4000117.html 
+ 1320  python2 download.py
+ 1321  ls
+ 1322  less download/pulpmills
+ 1323  less download/pulpmills.csv
+ 1324  python2 download.py
+ 1325  less download/pulpmills.csv
+ 1326  python2 download.py
+ 1327  less download/particleboards.csv 
+ 1328  ls
+ 1329  ls download/wood
+ 1330  ls download/wood_pellet_factories/
+ 1331  vim data.json 
+ 1332  python2 download.py
+ 1333  ls
+ 1334  vim download/wood_pellet_factories/5004026.html 
+ 1335  grep sawdust download/wood_pellet_factories/ -R
+ 1336  grep sawdust download/wood_pellet_factories/ -R3
+ 1337  python2 download.py
+ 1338  less download/wood_pellet_factories.csv 
+ 1339  ls
+ 1340  ls download
+ 1341  cd download/
+ 1342  ls
+ 1343  vim particleboards.csv 
+ 1344  ls
+ 1345  vim pulpmills
+ 1346  vim pulpmills.csv 
+ 1347  ls
+ 1348  du -hs *csv
+ 1349  cd projects/basisbioenergy.eu/
+ 1350  python2 download
+ 1351  python2 download.py 
+ 1352  ls
+ 1353  less download/pulpmills.csv 
+ 1354  less download/particleboards.csv 
+ 1355  less download/wood_pellet_factories.csv 
+ 1356  python2 download.py 
+ 1357  ls
+ 1358  less download/wood_pellet_factories.csv 
+ 1359  top
+ 1360  cd projects/EnSzen2017/
+ 1361  ./run_invert_aut.sh
+ 1362  ./sara_run_ModellierungFWGas.sh 
+ 1363  screen -ls
+ 1364  screen -R SaraAdaptedClimate
+ 1365  screen -X -S SaraAdaptedClimate kill
+ 1366  screen -ls
+ 1367  screen -R SaraP2HURBEM
+ 1368  screen -ls
+ 1369  screen -S SaraP2H
+ 1370  ls
+ 1371  screen -ls
+ 1372  screen -R SaraP2H
+ 1373  top
+ 1374  cd projects/EnSzen2017/
+ 1375  ./run_invert_aut.sh
+ 1376  screen -ls
+ 1377  screen -R SaraP2H
+ 1378  top
+ 1379  free -h
+ 1380  cd projects/progRESsHEAT/
+ 1381  ./mesc.sh
+ 1382  top
+ 1383  screen -ls
+ 1384  screen -R SaraP2H
+ 1385  free -h
+ 1386  ps -ef|grep python
+ 1387  screen -ls
+ 1388  cd projects/progRESsHEAT/
+ 1389  ./mesch.sh
+ 1390  ./mesc.sh
+ 1391  exit
+ 1392  screen -R "Task52"
+ 1393  exit
+ 1394  screen -ls
+ 1395  screen -R SaraP2H
+ 1396  screen -ls
+ 1397  screen -R "Task52"
+ 1398  top
+ 1399  screen -ls
+ 1400  screen -R "Task52"
+ 1401  screen -ls
+ 1402  screen -R SaraP2H
+ 1403  screen -ls
+ 1404  screen -R "Task52"
+ 1405  screen -ls
+ 1406  screen -R SaraP2H
+ 1407  screen -R 26069.SaraP2H
+ 1408  screen -ls
+ 1409  screen -R SaraP2H
+ 1410  screen -ls
+ 1411  screen -X -S SaraP2H
+ 1412  screen -S SaraP2H
+ 1413  screen -ls
+ 1414  .. cde
+ 1415  .. cd
+ 1416  cd
+ 1417  cd .matlab
+ 1418  cd R2015
+ 1419  ls
+ 1420  cdR2015b
+ 1421  cd R2015b
+ 1422  cd gurobi650
+ 1423  cd linux64
+ 1424  cd bin
+ 1425  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1426  ls
+ 1427  grbgetkey
+ 1428  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1429  cd
+ 1430  cd .matlab/R2015b
+ 1431  cd yalmip/gurobi563
+ 1432  cd linux64/bin
+ 1433  ls
+ 1434  grbgetkey
+ 1435  echo $PATH
+ 1436  cd
+ 1437  cd media
+ 1438  ls
+ 1439  cd
+ 1440  cd ./matlab
+ 1441  cd .matlab
+ 1442  cd R2015b/yalmpit/gurobi563
+ 1443  cd R2015b/yalmip/gurobi563
+ 1444  cd linux64/bin
+ 1445  ls
+ 1446  export GUROBI_HOME="./matlab/R2015b/yalmipt/gurobi563/linux64"
+ 1447  export PATH="{GUROBI_HOME}/bin"
+ 1448  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1449  ls
+ 1450  cd
+ 1451  cd .matlab/R2015b
+ 1452  cd yalmip/gurobi563/linux64
+ 1453  ls
+ 1454  ls -l
+ 1455  cd bin
+ 1456  dir
+ 1457  ls -l
+ 1458  ls
+ 1459  cd projects/cost_curves_lithuania/
+ 1460  ./cost_curves_lithuania_run_eelab_agne.sh 
+ 1461  lks
+ 1462  ls
+ 1463  cd 
+ 1464  cd ./matlab/R2015b/yalmip
+ 1465  cd
+ 1466  cd ./matlab/R2015b
+ 1467  cd .matlab/R2015b
+ 1468  cd yalmip/gurobi563/linux64/bin
+ 1469  ls
+ 1470  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1471  echo $PATH
+ 1472  cd
+ 1473  cd /media
+ 1474  cd SSD960GB/invert_eelab/invert_eelab_model/ee-lab
+ 1475  cd src/CommonEnergyTool/scripts
+ 1476  ls
+ 1477  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1478  ls  -a
+ 1479  less gurobi.log 
+ 1480  ls
+ 1481  less java.log.22874 
+ 1482  du -hs *
+ 1483  ls
+ 1484  cat gurobi.lic 
+ 1485  su
+ 1486  ./sara_run_P2H.sh 
+ 1487  ./run_P2H.sh 
+ 1488  ./run_P2HURBEM.sh
+ 1489  cd
+ 1490  cd .matlab/R2015b/gurobi650/
+ 1491  ls
+ 1492  cde
+ 1493  cd ..
+ 1494  cd yalmi
+ 1495  cd yalmip
+ 1496  cd gurobi563/linux64/matlab/
+ 1497  ls
+ 1498  cd bin
+ 1499  cd ..
+ 1500  ls
+ 1501  cd
+ 1502  cat gurobi.lic 
+ 1503  ls -l gurobi.lic 
+ 1504  cd -
+ 1505  cd ../..
+ 1506  find . -iname \*getKey\*
+ 1507  cd gurobi563/linux64/bin/
+ 1508  ./grbgetkey  70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1509  ls -l /home/simulant/gurobi.lic 
+ 1510  ./grbgetkey  70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1511  ls -l /home/simulant/gurobi.lic
+ 1512  cat /home/simulant/gurobi.lic
+ 1513  cd
+ 1514  cd projects/urbem_sara/run/
+ 1515  ./run_P2H.sh
+ 1516  ls -l ~/gurobi.lic
+ 1517  ls -l ~/gurobi.lic*
+ 1518  cat ~/gurobi.lic*
+ 1519  ls
+ 1520  #./run_P2H.sh 
+ 1521  ./run_P2H.sh 
+ 1522  screen -lsc
+ 1523  screen -R SaraP2H
+ 1524  screen -R 20830.SaraP2H
+ 1525  screen -ls
+ 1526  screen -R 26069.SaraP2H
+ 1527  screen -ls
+ 1528  screen -X -S 26069.SaraP2H kill
+ 1529  screen -ls
+ 1530  screen -R 20830.SaraP2H
+ 1531  screen -ls
+ 1532  screen -X -S SaraP2H kill
+ 1533  screen -R SaraP2HURBEM
+ 1534  screen -X -S SaraP2HURBEM
+ 1535  screen -X -S SaraP2HURBEM kill
+ 1536  screen -ls
+ 1537  screen -R SaraP2H
+ 1538  screen -ls
+ 1539  screen -R SaraP2H
+ 1540  screen -ls
+ 1541  top
+ 1542  screen -ls
+ 1543  screen -R SaraP2H
+ 1544  screen -ls
+ 1545  screen -R SaraP2H
+ 1546  screen -ls
+ 1547  screen -R SaraP2H
+ 1548  exit
+ 1549  top
+ 1550  free -m
+ 1551  kill 5290
+ 1552  top
+ 1553  free -m
+ 1554  top
+ 1555  exit
+ 1556  top
+ 1557  cd projects/EnSzen2017/
+ 1558  ./run_invert_aut.sh 
+ 1559  exit
+ 1560  cd projects/EnSzen2017/
+ 1561  ./run_invert_aut.sh 
+ 1562  exit
+ 1563  ./run_invert_aut.sh 
+ 1564  cd projects/EnSzen2017/
+ 1565  ./run_invert_aut.sh 
+ 1566  qgis
+ 1567  ./rund_P2H.sh
+ 1568  ./run_P2H.sh
+ 1569  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1570  cd ..
+ 1571  find . -name gurobi.lic
+ 1572  cd ..
+ 1573  grbgetkey
+ 1574  ls
+ 1575  cd .matlab
+ 1576  cd R2015b
+ 1577  cd yalmpit/gurobi563
+ 1578  cd yalmip/gurobi563
+ 1579  grbgetkey
+ 1580  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1581  cd linux64
+ 1582  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1583  cd matlab
+ 1584  grbgetkey 70453aa1-0488-aeea-bcc3-583d5c9b8ebc
+ 1585  ls
+ 1586  cd ..
+ 1587  dir
+ 1588  ls
+ 1589  ls -l
+ 1590  cd ..
+ 1591  cd gurobi563/
+ 1592  ls
+ 1593  cd linux64/
+ 1594  ls
+ 1595  cd bin
+ 1596  ls
+ 1597  cd ..
+ 1598  ls
+ 1599  cd ..
+ 1600  find .grbgetkey
+ 1601  cd gurobi563/
+ 1602  find .grbgetkey
+ 1603  dir
+ 1604  cd
+ 1605  cd projects/urbem_sara/run/
+ 1606  ./run_P2H.sh
+ 1607  cd projects/EnSzen2017/
+ 1608  ./run_invert_aut.sh 
+ 1609  screen -ls
+ 1610  screen -R SaraP2H
+ 1611  screen -ls
+ 1612  screen -X -S 11053.SaraP2H kill
+ 1613  screen -ls
+ 1614  screen -R SaraP2H
+ 1615  screen -ls
+ 1616  screen -X -S SaraP2H kill
+ 1617  screen -S SaraP2H
+ 1618  screen -ls
+ 1619  screen -D -r 2390.SaraP2H
+ 1620  cd projects/EnSzen2017/
+ 1621  ./run_invert_aut.sh 
+ 1622  ls
+ 1623  ./run_P2H.sh
+ 1624  screen -ls
+ 1625  screen -S SaraP2HSalz
+ 1626  ls
+ 1627  screen -ls
+ 1628  screen -R SaraP2H
+ 1629  screen -ls
+ 1630  screen -X -S SaraP2H kill
+ 1631  top
+ 1632  screen -ls
+ 1633  screen -R SaraP2H
+ 1634  screen -X -S SaraP2H kill
+ 1635  screen -ls
+ 1636  top
+ 1637  ./run_P2H.sh
+ 1638  screen -ls
+ 1639  screen -S SaraP2H
+ 1640  screen -ls
+ 1641  screen -X -S SaraP2H kill
+ 1642  screen -ls
+ 1643  screen -S SaraP2H
+ 1644  screen -ls
+ 1645  screen -R SaraP2H
+ 1646  screen -ls
+ 1647  top
+ 1648  screen -ls
+ 1649  screen -R SaraP2H
+ 1650  screen -ls
+ 1651  screen -R SaraP2H
+ 1652  screen -ls
+ 1653  screen -R SaraP2H
+ 1654  screen -ls
+ 1655  screen -X -S SaraP2H kill
+ 1656  screen -S SaraP2H
+ 1657  screen -ls
+ 1658  screen -r SaraP2H
+ 1659  screen -ls
+ 1660  screen -R SaraP2H
+ 1661  screen -ls
+ 1662  screen -R SaraP2H
+ 1663  screen -ls
+ 1664  screen -R SaraP2H
+ 1665  screen -ls
+ 1666  screen -R SaraP2H
+ 1667  screen -ls
+ 1668  screen -R SaraP2H
+ 1669  sudo apt-get install upgrade saga
+ 1670  sudo apt-get upgrade saga
+ 1671  sudo apt-get upgrade qgis
+ 1672  sudo apt-get upgrade libsaga
+ 1673  sudo apt-get upgrade python-saga
+ 1674  sudo apt-get upgrade qgis-sql}
+ 1675  sudo apt-get upgrade qgis-sql*
+ 1676  sudo apt-get upgrade qgis-map*
+ 1677  sudo apt-get upgrade libg*
+ 1678  sudo apt-get upgrade libgdal*
+ 1679  sudo apt-get upgrade libgdalgrass*
+ 1680  sudo apt-get upgrade libqgdalgrass*
+ 1681  sudo apt-get upgrade libqgdal*
+ 1682  sudo apt-get upgrade libgdal1*
+ 1683  sudo apt-get upgrade libgdal1.10*
+ 1684  mkdir ag_lukas
+ 1685  cd ag_lukas/
+ 1686  ls
+ 1687  ls -l
+ 1688  exit
+ 1689  cd projects/_WAM_plus/
+ 1690  ./run_invert_aut.sh 
+ 1691  scren -ls
+ 1692  free -m
+ 1693  top 
+ 1694  top
+ 1695  cd /etc/apt
+ 1696  ls
+ 1697  ls -l
+ 1698  sudo vi sources.list
+ 1699  sudo apt-get update
+ 1700  sudo vi sources.list
+ 1701  sudo apt-get update
+ 1702  sudo vi sources.list
+ 1703  sudo apt-get update
+ 1704  wget -O - http://qgis.org/downloads/qgis-2016.gpg.key | gpg --import
+ 1705  gpg --fingerprint 073D307A618E5811
+ 1706  sudo apt-get update
+ 1707  wget -O - http://qgis.org/downloads/qgis-2016.gpg.key | gpg --import
+ 1708  gpg --export --armor 073D307A618E5811 | sudo apt-key add -
+ 1709  sudo apt-get update
+ 1710  sudo apt-get upgrade
+ 1711  sudo apt-get upgrade install 
+ 1712  sudo apt-get install 
+ 1713  sudo apt-get python-qgis python-qgis-common qgis qgis-common qgis-plugin-grass qgis-plugin-grass-common qgis-providers qgis-providers-common
+ 1714  sudo apt-get install upgrade python-qgis python-qgis-common qgis qgis-common qgis-plugin-grass qgis-plugin-grass-common qgis-providers qgis-providers-common
+ 1715  sudo apt-get install python-qgis python-qgis-common qgis qgis-common qgis-plugin-grass qgis-plugin-grass-common qgis-providers qgis-providers-common
+ 1716  sudo apt-get autoremove
+ 1717  ps -ef
+ 1718  top
+ 1719  ps -ef| grep python
+ 1720  top
+ 1721  screen -ls
+ 1722  top
+ 1723  ps -ef
+ 1724  ps -ef | grep python
+ 1725  ps -ef | grep python --color=yes
+ 1726  screen -r invert_20189
+ 1727  screen -x invert_20189
+ 1728  ps -ef | grep python --color=yes
+ 1729  exit
+ 1730  exit
+ 1731  screen -h
+ 1732  screen ls
+ 1733  screen dir
+ 1734  screen -h
+ 1735  screen -x
+ 1736  screen -x 9315.invert_2958
+ 1737  exit
+ 1738  top
+ 1739  cd projects/EnSzen2017/
+ 1740  ./run_invert_aut.sh 
+ 1741  python /media/SSD960GB/invert_eelab/invert_eelab_model/ee-lab/src/eelab/main/post_processing_stand_alone.py /home/simulant/projects/EnSzen2017/output_StEnKlSt/_scen_aut_a00_WEM_2017_constEp/TEMP/postprocessing_data_object_48563641939.pk
+ 1742  exit
+ 1743  exit
+ 1744  cd projects/EnSzen2017/
+ 1745  ./run_invert_aut.sh 
+ 1746  exit
+ 1747  cd projects/EnSzen2017/
+ 1748  ls
+ 1749  vi run_invert_aut.sh 
+ 1750  ./run_invert_aut.sh 
+ 1751  exit
+ 1752  cd projects/EnSzen2017/
+ 1753  ./run_invert_aut.sh 
+ 1754  cd projects/BRISKEE/start_files/
+ 1755  ./michi_run_briskee.sh 
+ 1756  ./michi_run_mapping_final.sh 
+ 1757  ./michi_run_briskee.sh 
+ 1758  cd projects/BRISKEE/start_files/
+ 1759  ./michi_run_briskee.sh 
+ 1760  screen -ls
+ 1761  screen -r 23080
+ 1762  screen -r 8119
+ 1763  screen -r 8119.invert_23080
+ 1764  screen -r8119.invert_23080
+ 1765  ./michi_run_briskee_test_cool.sh 
+ 1766  cd..
+ 1767  cd ..
+ 1768  cd postanalysis/postAnalysisPython/cooling/CoolingModule_python/
+ 1769  -r CoolingModuleStable_michi_test.py
+ 1770  python CoolingModuleStable_michi_test.py
+ 1771  cd ..
+ 1772  cd
+ 1773  cd projects/BRISKEE/start_files/ ./ michi_run_briskee.sh
+ 1774  cd projects/BRISKEE/start_files/
+ 1775  ./ michi_run_briskee.sh
+ 1776  ./michi_run_briskee.sh
+ 1777  ./michi_run_briskee_test2.sh
+ 1778  top
+ 1779  cd projects/Briskee
+ 1780  cd projects
+ 1781  cd Briskee
+ 1782  cd..
+ 1783  cd ..
+ 1784  cd projects/
+ 1785  cd ..
+ 1786  cd projects/BRISKEE/
+ 1787  cd start_files/
+ 1788  ./michi_run_briskee.sh 
+ 1789  ./richard_run_eelab_progHEAT_national.sh 
+ 1790  cd projects/BRISKEE/start_files/
+ 1791  ./michi_run_briskee.sh 
+ 1792  ./michi_run_briskee_test2.sh
+ 1793  qgis
+ 1794  cd projects/EnSzen2017/
+ 1795  ./run_invert_aut.sh 
+ 1796  cd ag_lukas/personen/Mostafa/openstreetmap/data/
+ 1797  ls
+ 1798  ls *3035*
+ 1799  ls Buildings_3035.*
+ 1800  rm Buildings_3035.*
+ 1801  lsof Buildings_3035.shp 
+ 1802  rm Buildings_3035.*
+ 1803  ps -ef
+ 1804  ps -ef | grep -i qgis
+ 1805  ps -ef | grep -i gis
+ 1806  cd
+ 1807  cd ag_lukas/
+ 1808  ls -a
+ 1809  cd personen/Mostafa/openstreetmap/
+ 1810  ls
+ 1811  cd data/
+ 1812  ls
+ 1813  mv Buildings_3035.shp x
+ 1814  cd ..
+ 1815  mv data data2
+ 1816  cd data2
+ 1817  ls
+ 1818  rm Buildings_3035.shp 
+ 1819  cd ..
+ 1820  cp -r data2/ data
+ 1821  cd data
+ 1822  ls
+ 1823  rm Buildings_3035.*
+ 1824  cd ..
+ 1825  rm -r data2/
+ 1826  ls Script_sammlung_Invert/
+ 1827  cd
+ 1828  cd projects/hotmaps/src
+ 1829  ls
+ 1830  main.py
+ 1831  python main.py
+ 1832  python
+ 1833  ls projects/
+ 1834  cd ag_lukas/personen/Mostafa/
+ 1835  python split.py 
+ 1836  #dpkg-query -L python
+ 1837  aptitude search qgis
+ 1838  dpkg-query -L gqis
+ 1839  dpkg-query -L qgis
+ 1840  #ls /usr/share/python/
+ 1841  cd /usr/share
+ 1842  find . -iname \*qgis\*
+ 1843  ls /usr/share/qgis/python/plugins/
+ 1844  cd
+ 1845  cd ag_lukas/personen/Mostafa/
+ 1846  python split.py 
+ 1847  ls /usr/share/qgis/python/plugins/
+ 1848  ls /usr/share/qgis/python/plugins/processing/
+ 1849  python split.py 
+ 1850  python
+ 1851  python split.py 
+ 1852  python3 split.py 
+ 1853  python split.py 
+ 1854  pip search future
+ 1855  pip search future | grep future --color=always
+ 1856  python split.py 
+ 1857  echo $DISPLAY
+ 1858  echo $DIPSLA
+ 1859  echo $DIPSLAZ
+ 1860  echo $DIPSLAY
+ 1861  echo $DISPLAY
+ 1862  exit
+ 1863  python
+ 1864  cd ag_lukas/personen/Mostafa/
+ 1865  python split.py 
+ 1866  aptitude search processing
+ 1867  pip search processing
+ 1868  pip search processing | grep processing --color=always
+ 1869  vim split.py
+ 1870  cd ag_lukas/personen/Mostafa/
+ 1871  python split.py 
+ 1872  xeyes 
+ 1873  export DISPLAY=:12.0
+ 1874  xeyes 
+ 1875  python split.py 
+ 1876  export DISPLAY=:12.0
+ 1877  python split.py 
+ 1878  unset DISPLAY
+ 1879  python split.py 
+ 1880  export DISPLAY=:12.0
+ 1881  exit
+ 1882  echo $DISPLAY
+ 1883  echo $DISPLAY
+ 1884  export DISPLAY=12.0
+ 1885  export DISPLAY=:12.0
+ 1886  cd ag_lukas/personen/Mostafa/
+ 1887  python split.py 
+ 1888  cd
+ 1889  clear
+ 1890  cd ag_lukas/personen/Mostafa/
+ 1891  ls
+ 1892  ./split.py
+ 1893  ls
+ 1894  mkdir EnergyDensity
+ 1895  vim EnergyDensity/splitShell.py
+ 1896  vim split.py
+ 1897  ls EnergyDensity/
+ 1898  python split.py 
+ 1899  touch EnergyDensity/__init__.py
+ 1900  python split.py 
+ 1901  vim split.py
+ 1902  python split.py 
+ 1903  cd
+ 1904  cd ag_lukas/personen/Mostafa/
+ 1905  python split.py 
+ 1906  echo $DISPLAY
+ 1907  export DISPLAY=:10
+ 1908  cd ag_lukas/P
+ 1909  cd ag_lukas/personen/Mostafa/
+ 1910  python split.py
+ 1911  echo DISPLAY
+ 1912  echo $DISPLAY
+ 1913  export DISPLAY=:10.0
+ 1914  cd ag_lukas/personen/Mostafa/
+ 1915  python split.py
+ 1916  echo DISPLAY
+ 1917  echo $DISPLAY
+ 1918  export DISPLAY=:10.0
+ 1919  cd ag_lukas/personen/Mostafa/
+ 1920  python split.py
+ 1921  Error in `python': malloc(): memory corruption: 0x00000000031610d0
+ 1922  echo $DISPLAY
+ 1923  export DISPLAY=:10.0
+ 1924  cd ag_lukas/personen/Mostafa/
+ 1925  python split.py
+ 1926  python split.p
+ 1927  python split.pY
+ 1928  python split.py
+ 1929  python test1.py
+ 1930  simulant@sim14:~/ag_lukas/personen/Mostafa$
+ 1931  python split.py
+ 1932  man -k malloc
+ 1933  mtrace (1)
+ 1934  mtrace () malloc(3)
+ 1935  PyMem_MALLOC(size)
+ 1936  PyMem_MALLOC() PyMem_MALLOC(size)
+ 1937  echo DISPLAY
+ 1938  echo $DISPLAY
+ 1939  export DISPLAY=:10.0
+ 1940  cd ag_lukas/personen/Mostafa/
+ 1941  cd ag_lukas/personen/Mostafa/
+ 1942  python $split.py
+ 1943  python ResArea.py
+ 1944  ls
+ 1945  cd projects/
+ 1946  ls
+ 1947  cd input_2050
+ 1948  ls
+ 1949  top
+ 1950  ./sebastian_run_eelab_all_countries.sh 
+ 1951  exit
+ 1952  echo DISPLAY
+ 1953  echo $DISPLAY
+ 1954  export DISPLAY=:10.0
+ 1955  cd ag_lukas/personen/Mostafa/
+ 1956  python ResArea.py
+ 1957  cd 
+ 1958  find -name "<gdal_calc.py>"
+ 1959  cd /usr/share/qgis/
+ 1960  find -name "<gdal_calc.py>"
+ 1961  cd ag_lukas/personen/Mostafa/
+ 1962  cd
+ 1963  ag_lukas/personen/Mostafa/
+ 1964  python ResArea.py
+ 1965  cd
+ 1966  cd ag_lukas/personen/Mostafa/
+ 1967  python ResArea.py
+ 1968  python Compression.py
+ 1969  cd 
+ 1970  cd
+ 1971  find -name "gdal_calc.py"
+ 1972  cd /usr/share/qgis/
+ 1973  find -name "gdal_calc.py"
+ 1974  cd /usr/share/qgis/python/
+ 1975  cd ag_lukas/personen/Mostafa/
+ 1976  cd
+ 1977  cd ag_lukas/personen/Mostafa/
+ 1978  python ResArea.py
+ 1979  echo $DISPLAY
+ 1980  export DISPLAY=:10.0
+ 1981  cd ag_lukas/personen/Mostafa/
+ 1982  python ResArea.py
+ 1983  python ResArea1.py
+ 1984  cd
+ 1985  echo $DISPLAY
+ 1986  export DISPLAY=:10.0
+ 1987  cd ag_lukas/personen/Mostafa/
+ 1988  python ResArea.py
+ 1989  python split.py
+ 1990  eclipse
+ 1991  echo $DISPLAY
+ 1992  export DISPLAY=:10.0
+ 1993  cd ag_lukas/personen/Mostafa/
+ 1994  python ResArea.py
+ 1995  echo DISPLAY
+ 1996  echo $DISPLAY
+ 1997  export DISPLAY=:10
+ 1998  cd ag_lukas/personen/Mostafa/
+ 1999  python ResArea.py
+ 2000  pip install processing
+ 2001  sudo pip install processing
+ 2002  sudo python34 - m pip install processing
+ 2003  sudo python3 - m pip install processing
+ 2004  sudo python3 -m pip install processing
+ 2005  sudo python34 -m pip install processing
+ 2006  sudo python3.4 -m pip install processing
+ 2007  sudo python3.4
+ 2008  sudo python3.4 -m pip install upgrade pip
+ 2009  sudo python3.4 -m pip install upgrade processiong
+ 2010* sudo python3.4 -m pip install-- upgrade processing
+ 2011  sudo python3.4 -m pip install --upgrade processiong
+ 2012  sudo python3.4 -m pip install --upgrade processing
+ 2013  cd 
+ 2014  cd workspace/project/HOTMAPS/
+ 2015  ls
+ 2016  python split.py
+ 2017  hiostory
+ 2018  history
+ 2019  history > hist

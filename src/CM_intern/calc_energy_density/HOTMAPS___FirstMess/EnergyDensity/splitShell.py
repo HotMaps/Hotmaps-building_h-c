@@ -1,0 +1,2 @@
+def splitShell():
+    return "hi"

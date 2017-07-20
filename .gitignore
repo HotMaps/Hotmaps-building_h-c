@@ -34,3 +34,13 @@ src/AD/final_data/
 \.settings/
 
 src/AD/data_warehouse/
+
+src/CM_intern/calc_energy_density/HOTMAPS___FirstMess/openstreetmap/
+
+src/CM_intern/calc_energy_density/HOTMAPS___FirstMess/ED3/DATA/
+
+*.qgs
+
+*.qgs~
+
+*.so
