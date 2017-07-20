@@ -15,6 +15,7 @@ from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
 from scipy.ndimage import measurements
 from src.AD.heat_density_map.main import HDMAP
+from src.CM_intern.clip import clip_raster
 '''
 The input for this calculation module is "heat density map" with [GWh/km2]
 unit. The output of this calculation module is set of connected pixels to
@@ -171,7 +172,7 @@ def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_):
 
 
 def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
-            DH_threshold, outRasterPath):
+            DH_threshold, outRasterPath, clipsum=False):
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
     inDataSource = inDriver.Open(strd_vector_path, 0)
     inLayer = inDataSource.GetLayer()
@@ -213,8 +214,14 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
                    lowIndexY:upIndexY] += DH_Selected_Region
         arr_out = None
         inFeature = None
-    result = DHPotential(DH_Regions, arr1)
-    array2raster(outRasterPath, rasterOrigin, 100, -100, "float32", result, 0)
+    if clipsum:
+        result = arr1 * DH_Regions.astype(int)
+        geoTrans = [rasterOrigin[0], 100, 0, rasterOrigin[1], 0, -100]
+        output_dir = os.getcwd() + os.sep + 'Outputs'
+        clip_raster(result, strd_vector_path, output_dir, gt=geoTrans, nodata=0)
+    else:
+        result = DHPotential(DH_Regions, arr1)
+        array2raster(outRasterPath, rasterOrigin, 100, -100, "float32", result, 0)
     cutRastDatasource = None
     arr1 = None
 
@@ -235,6 +242,6 @@ if __name__ == "__main__":
     # DH_threshold [GWh/a]
     DH_threshold = 30
     NutsCut(heat_density_map, region, pix_threshold, DH_threshold,
-            outRasterPath)
+            outRasterPath, clipsum=False)
     elapsed = time.time() - start
     print(elapsed)
