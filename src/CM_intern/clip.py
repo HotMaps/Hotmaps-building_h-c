@@ -2,6 +2,7 @@ from osgeo import gdal, gdalnumeric, ogr, osr
 from PIL import Image, ImageDraw
 import os
 import numpy as np
+import pandas as pd
 import time
 
 
@@ -33,7 +34,9 @@ def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
     outRaster.FlushCache()
 
 
-def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999):
+def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
+                save2csv=None, save2raster=None, save2shp=None,
+                unit_multiplier=None):
     '''
     Clips a raster (given as either a gdal.Dataset or as a numpy.array
     instance) to a polygon layer provided by a Shapefile (or other vector
@@ -46,10 +49,13 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999):
     #clip-a-geotiff-with-shapefile
 
     Arguments:
-        rast            A gdal.Dataset or a NumPy array
-        features_path   The path to the clipping layer
-        gt              An optional GDAL GeoTransform to use instead
-        nodata          The NoData value; defaults to -9999.
+        rast               A gdal.Dataset or a NumPy array
+        features_path      The path to the clipping layer
+        gt                 An optional GDAL GeoTransform to use instead
+        nodata             The NoData value; defaults to -9999
+        save2csv           should the outputs be saved in a csv file as well?
+        unit_multiplier    Factor to be multiplied into the summation to
+                           output the desired unit.
     '''
 
     def image_to_array(i):
@@ -78,6 +84,12 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999):
         line = int((ulY - y) / xDist)
         return (pixel, line)
 
+    # Create a data array for the output csv
+    if save2csv:
+        feat = []
+        demand = []
+    if unit_multiplier:
+        unit_multiplier = 1
     # Can accept either a gdal.Dataset or numpy.array instance
     if not isinstance(rast, np.ndarray):
         gt = rast.GetGeoTransform()
@@ -90,9 +102,10 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999):
         lyr = features.GetLayer(temp[1])
     else:
         lyr = features.GetLayer()
+    
     for fid in range(lyr.GetFeatureCount()):
         '''
-        if fid != 110:
+        if fid > 40:
             continue
         '''
         poly = lyr.GetFeature(fid)
@@ -203,20 +216,37 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999):
             gt3 = gt2
             gt2 = None
             clip = None
-        nuts_region = str(poly.GetField(0))
-        demand = np.sum(clip_complete) * 0.01
-        print('Total demand in nuts region %s is %0.1f GWh' %(nuts_region, demand))
-        #outRasterPath = outRasterDir + os.sep + 'feature_' + str(fid) + '.tif'
-        #array2raster(outRasterPath, (gt3[0], gt3[3]), gt3[1], gt3[5],
-        #             str(clip_complete.dtype), clip_complete, 0)
+        if save2csv:
+            nuts_region = str(poly.GetField(0))
+            dem_sum = np.sum(clip_complete) * unit_multiplier
+            feat.append(nuts_region)
+            demand.append(dem_sum)
+            print('Total demand/potential in nuts region %s is: ' \
+                  '%0.1f GWh' %(nuts_region, dem_sum))
+        if save2raster:
+            outRasterPath = outRasterDir + os.sep + 'feature_' + \
+                            str(fid) + '.tif'
+            array2raster(outRasterPath, (gt3[0], gt3[3]), gt3[1], gt3[5],
+                         str(clip_complete.dtype), clip_complete, 0)
+    if save2csv:
+        df = pd.DataFrame()
+        df['Feature'] = np.array(feat)
+        df['Sum'] = np.array(demand)
+        csv_path = outRasterDir + os.sep + 'clip_result.csv'
+        df.to_csv(csv_path)
 
 if __name__ == '__main__':
     start = time.time()
-    features_path = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/NUTS3.shp"
-    raster = "/home/simulant/ag_lukas/personen/Mostafa/" \
-             "DHpot/top_down_heat_density_map_v2.tif"
+    os.chdir('..')
+    base_folder = os.getcwd()
+    data_warehouse = base_folder + os.sep + 'AD/data_warehouse'
+    features_path = data_warehouse + os.sep + "AT.shp"
+    raster = data_warehouse + os.sep + "ResidentialUsefulDemand.tif"
+    output_dir = base_folder + os.sep + 'Outputs'
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
     nodata = 0
     rast = gdal.Open(raster)
-    outRasterDir = "/home/simulant/ag_lukas/personen/Mostafa/DHpot/AT"
-    clip_raster(rast, features_path, outRasterDir, nodata=0)
+    outRasterDir = output_dir
+    clip_raster(rast, features_path, outRasterDir,save2raster=True, nodata=0)
     print(time.time() - start)
