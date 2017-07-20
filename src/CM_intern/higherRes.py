@@ -1,4 +1,4 @@
-import gdal, ogr, os, osr, time
+from osgeo import gdal, ogr, os, osr, time
 import numpy as np
 from array2raster import array2raster
 '''

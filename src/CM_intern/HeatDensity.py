@@ -1,6 +1,7 @@
 import numpy as np
 import shutil
-import sys, os, time, gdal, ogr
+import sys, os, time
+from osgeo import gdal, ogr
 from array2raster import array2raster
 from changeRastExt import RastExtMod
 from higherRes import HighRes

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-import ogr
-import osr
+from osgeo import ogr
+from osgeo import osr
 import os
 import time
 import sys

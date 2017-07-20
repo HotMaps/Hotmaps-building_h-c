@@ -5,7 +5,7 @@ Created on July 11 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
-from src.AD.heat_density_map.main import HDMAP
+from AD.heat_density_map.main import HDMAP
 
 
 def ad_f13():

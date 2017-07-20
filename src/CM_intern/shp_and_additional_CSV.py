@@ -4,13 +4,12 @@ Created on Thu May 4 2017
 
 @author: Mostafa
 """
-import ogr, osr
-import pandas as pd
-import numpy as np
-import warnings, os
+import os
 import time
-#from asyncio.windows_events import NULL
-
+import numpy as np
+from osgeo import ogr
+from osgeo import osr
+import pandas as pd
 '''
 This is an old comment:
 This code reads the CSV file containing demand values and creates a shapefile with a NUTS3 code field as well as all demand columns within the CSV file.

@@ -1,5 +1,7 @@
-from osgeo import ogr, osr
 import os
+from osgeo import ogr
+from osgeo import osr
+
 
 '''
 This code creates an extent layer with minimum area for the input layer

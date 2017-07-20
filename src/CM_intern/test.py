@@ -1,9 +1,11 @@
-import gdal
-import ogr, osr
 import os
 import time
 import numpy as np
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 import pandas as pd
+
 
 def filtering(lyr, filterlyr, outCSV):
     

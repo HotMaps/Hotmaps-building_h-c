@@ -1,7 +1,10 @@
-import gdal, os, math
-import numpy as np
-from array2raster import array2raster
+import os
+import math
 import time
+import numpy as np
+from osgeo import gdal
+from array2raster import array2raster
+
 '''
 This code is performed for raster layers which their extent is greater than population raster. 
 also their resolution should be smaller or equal to the population raster and also be a multiplicand of "10".

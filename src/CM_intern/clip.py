@@ -1,9 +1,13 @@
-from osgeo import gdal, gdalnumeric, ogr, osr
+from osgeo import gdal
+from osgeo import gdalnumeric
+from osgeo import ogr
+from osgeo import osr
 from PIL import Image, ImageDraw
 import os
 import numpy as np
 import pandas as pd
 import time
+from CM_intern import csv2shp
 
 
 def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
@@ -32,6 +36,18 @@ def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
     outRaster.GetRasterBand(1).SetNoDataValue(noDataValue)
     outRaster.GetRasterBand(1).WriteArray(array)
     outRaster.FlushCache()
+
+
+def saveCSVorSHP(feat, demand, outCSVDir, save2csv=None, save2shp=None,
+                 inCSV=None, outShpPath=None):
+    df = pd.DataFrame()
+    df['Feature'] = np.array(feat)
+    df['Sum'] = np.array(demand)
+    csv_path = outCSVDir + os.sep + 'clip_result.csv'
+    if save2csv:
+        df.to_csv(csv_path)
+    if save2shp:
+        csv2shp.Excel2shapefile(features_path, df, outShpPath)
 
 
 def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
@@ -83,13 +99,16 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
         pixel = int((x - ulX) / xDist)
         line = int((ulY - y) / xDist)
         return (pixel, line)
-
+    
+    # get shapefile name
+    shpName = features_path.replace('\\','/')
+    shpName = shpName.split('/')[-1][0:-4]
     # Create a data array for the output csv
     if save2csv:
         feat = []
         demand = []
-    if unit_multiplier:
-        unit_multiplier = 1
+    if unit_multiplier is None:
+        unit_multiplier = 1.0
     # Can accept either a gdal.Dataset or numpy.array instance
     if not isinstance(rast, np.ndarray):
         gt = rast.GetGeoTransform()
@@ -221,19 +240,18 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
             dem_sum = np.sum(clip_complete) * unit_multiplier
             feat.append(nuts_region)
             demand.append(dem_sum)
-            print('Total demand/potential in nuts region %s is: ' \
-                  '%0.1f GWh' %(nuts_region, dem_sum))
+            print('Total demand/potential in nuts region %s is: %0.1f GWh'
+                  % (nuts_region, dem_sum))
         if save2raster:
-            outRasterPath = outRasterDir + os.sep + 'feature_' + \
+            outRasterPath = outRasterDir + os.sep + shpName + '_feature_' + \
                             str(fid) + '.tif'
             array2raster(outRasterPath, (gt3[0], gt3[3]), gt3[1], gt3[5],
                          str(clip_complete.dtype), clip_complete, 0)
-    if save2csv:
-        df = pd.DataFrame()
-        df['Feature'] = np.array(feat)
-        df['Sum'] = np.array(demand)
-        csv_path = outRasterDir + os.sep + 'clip_result.csv'
-        df.to_csv(csv_path)
+        if save2csv or save2shp:
+            outCSVDir = outRasterDir
+            saveCSVorSHP(feat, demand, outCSVDir, save2csv=None, save2shp=None,
+                         inCSV=None, outShpPath=None)
+
 
 if __name__ == '__main__':
     start = time.time()
@@ -241,12 +259,12 @@ if __name__ == '__main__':
     base_folder = os.getcwd()
     data_warehouse = base_folder + os.sep + 'AD/data_warehouse'
     features_path = data_warehouse + os.sep + "AT.shp"
-    raster = data_warehouse + os.sep + "ResidentialUsefulDemand.tif"
+    raster = data_warehouse + os.sep + "top_down_heat_density_map_v2_AT.tif"
     output_dir = base_folder + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     nodata = 0
     rast = gdal.Open(raster)
     outRasterDir = output_dir
-    clip_raster(rast, features_path, outRasterDir,save2raster=True, nodata=0)
+    clip_raster(rast, features_path, outRasterDir, save2raster=True, nodata=0)
     print(time.time() - start)

@@ -7,9 +7,9 @@ Created on July 6 2017
 import os
 import pandas as pd
 import numpy as np
-import gdal
-import ogr
-import osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 import time
 
 '''

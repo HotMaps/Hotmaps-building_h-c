@@ -6,19 +6,16 @@ Created on Thu May 4 2017
 """
 import os
 import time
-import warnings
 import numpy as np
-import ogr
-import osr
+from osgeo import ogr
+from osgeo import osr
 import pandas as pd
 # from asyncio.windows_events import NULL
 '''
-This is an old comment:
-This code reads the CSV file containing demand values and creates a shapefile
-with a NUTS3 code field as well as all demand columns within the CSV file.
-The first row of the CSV file should be the header.
-In oder to comply with other modules, make sure that the outShpPath is set with
-the right name and path: Original Data/NUTS_Demand.shp
+inputs:
+    inShpPath:    path to the input shp file
+    inCSV:        path to the input csv file or Pandas DataFrame
+    outShpPath:   path for saving the output shp
 '''
 
 
@@ -36,8 +33,11 @@ def Excel2shapefile(inShpPath, inCSV, outShpPath):
     # Create the output shapefile
     outDataSource = outDriver.CreateDataSource(outShapefile)
     outLayer = outDataSource.CreateLayer("NUTS_Demand", srs, geom_type=ogr.wkbPolygon)
-    # read CSV file
-    ifile = pd.read_csv(inCSV)
+    if isinstance(inCSV, str):
+        # read CSV file
+        ifile = pd.read_csv(inCSV)
+    else:
+        ifile = inCSV
     df = ifile.values
     ID = ifile['id']
     check_null = pd.read_csv(inCSV).notnull().values

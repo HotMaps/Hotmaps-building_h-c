@@ -4,7 +4,7 @@ Created on Thu May 4 2017
 
 @author: Mostafa
 """
-import ogr, osr
+from osgeo import ogr, osr
 import pandas as pd
 import numpy as np
 import warnings, os

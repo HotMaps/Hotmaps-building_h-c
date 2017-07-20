@@ -6,8 +6,8 @@ Created on July 6 2017
 """
 import numpy as np
 import pandas as pd
-import gdal
-import osr
+from osgeo import gdal
+from osgeo import osr
 import time
 '''
 Functions:
@@ -100,10 +100,10 @@ def zonStat_selectedArea(inputCSV, outRasterPath, population=0):
         mean_dem_perCapita = abs_heat_demand/float(population)
     else:
         mean_dem_perCapita = np.nan
-    print("Absolute heat demand: %s \n Mean heat demand per capita: %s \n" \
-          "Mean heat demand per heated surface: %s" %(str(abs_heat_demand),
-                                                      str(mean_spec_demand),
-                                                      str(mean_dem_perCapita)))
+    print("Absolute heat demand: %0.1f GWh\n" \
+          "Mean heat demand per capita: %0.2f kWh\n" \
+          "Mean heat demand per heated surface (ave. specific demand): %0.2f"
+          %(abs_heat_demand *10**(-6), mean_dem_perCapita, mean_spec_demand))
 
 
 if __name__ == "__main__":

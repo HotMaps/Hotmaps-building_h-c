@@ -6,8 +6,8 @@ Created on July 6 2017
 """
 import os
 import time
-import ogr
-import osr
+from osgeo import ogr
+from osgeo import osr
 import pandas as pd
 '''
 This module creates a shapefile with attributes which exist in the input
