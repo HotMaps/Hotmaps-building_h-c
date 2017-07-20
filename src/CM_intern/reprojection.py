@@ -1,8 +1,9 @@
-import pandas as pd
-import ogr
-import osr
 import os
 import time
+from osgeo import ogr
+from osgeo import osr
+import pandas as pd
+
 
 def reproject(inShapefile, outLayerPath):
 # set geometry type before you run the program: wkbLineString, wkbPolygon, ...

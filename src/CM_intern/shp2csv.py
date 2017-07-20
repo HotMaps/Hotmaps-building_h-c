@@ -4,12 +4,12 @@ Created on July 7 2017
 
 @author: fallahnejad@eeg.tuwien.ac.at
 """
-import pandas as pd
-import ogr
-import osr
 import os
-import time
 import sys
+import time
+from osgeo import ogr
+from osgeo import osr
+import pandas as pd
 
 
 def shp2csv(inShapefile, outCSV):

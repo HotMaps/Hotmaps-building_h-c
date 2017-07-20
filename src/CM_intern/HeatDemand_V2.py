@@ -1,5 +1,5 @@
-import gdal, ogr, os, osr, time
-import os,math
+from osgeo import gdal, ogr, os, osr, time
+import os, math
 import numpy as np
 
 

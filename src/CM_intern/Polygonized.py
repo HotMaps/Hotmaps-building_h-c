@@ -1,4 +1,6 @@
-from osgeo import gdal, ogr, osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 import sys
 
 def polygonize():

@@ -6,10 +6,10 @@ Created on June 8 2017
 """
 import os
 import time
-import gdal
 import numpy as np
-import ogr
-import osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 import pandas as pd
 import shutil
 '''

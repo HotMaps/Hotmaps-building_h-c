@@ -4,10 +4,11 @@ Created on Wed May  3 15:34:14 2017
 
 @author: Mostafa
 """
-
-import os
-import ogr, osr
 from math import ceil
+import os
+from osgeo import ogr
+from osgeo import osr
+
 
 
 def main(outputGridfn,xmin,xmax,ymin,ymax,gridHeight,gridWidth):

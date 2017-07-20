@@ -6,16 +6,15 @@ Created on July 11 2017
 """
 import os
 import time
-import gdal
-import ogr
-import osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 import numpy as np
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
 from scipy.ndimage import measurements
-from src.AD.heat_density_map.main import HDMAP
-from src.CM_intern.clip import clip_raster
+from AD.heat_density_map.main import HDMAP
 '''
 The input for this calculation module is "heat density map" with [GWh/km2]
 unit. The output of this calculation module is set of connected pixels to
@@ -171,8 +170,8 @@ def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_):
     return (lowIndexX, upIndexX, lowIndexY, upIndexY)
 
 
-def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
-            DH_threshold, outRasterPath, clipsum=False):
+def DHReg(heat_density_map, strd_vector_path, pix_threshold,
+            DH_threshold):
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
     inDataSource = inDriver.Open(strd_vector_path, 0)
     inLayer = inDataSource.GetLayer()
@@ -214,16 +213,7 @@ def NutsCut(heat_density_map, strd_vector_path, pix_threshold,
                    lowIndexY:upIndexY] += DH_Selected_Region
         arr_out = None
         inFeature = None
-    if clipsum:
-        result = arr1 * DH_Regions.astype(int)
-        geoTrans = [rasterOrigin[0], 100, 0, rasterOrigin[1], 0, -100]
-        output_dir = os.getcwd() + os.sep + 'Outputs'
-        clip_raster(result, strd_vector_path, output_dir, gt=geoTrans, nodata=0)
-    else:
-        result = DHPotential(DH_Regions, arr1)
-        array2raster(outRasterPath, rasterOrigin, 100, -100, "float32", result, 0)
-    cutRastDatasource = None
-    arr1 = None
+    return DH_Regions, arr1, rasterOrigin
 
 
 if __name__ == "__main__":
@@ -241,7 +231,6 @@ if __name__ == "__main__":
     pix_threshold = 10
     # DH_threshold [GWh/a]
     DH_threshold = 30
-    NutsCut(heat_density_map, region, pix_threshold, DH_threshold,
-            outRasterPath, clipsum=False)
+    DHReg(heat_density_map, region, pix_threshold, DH_threshold)
     elapsed = time.time() - start
     print(elapsed)

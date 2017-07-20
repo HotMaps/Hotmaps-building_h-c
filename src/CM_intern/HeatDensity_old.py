@@ -1,4 +1,5 @@
-import sys, os, time, gdal
+import sys, os, time
+from osgeo import gdal
 from array2raster import array2raster
 from rasterize import rasterize
 from zonal_statistics import ZonalStat

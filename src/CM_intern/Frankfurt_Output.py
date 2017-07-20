@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import gdal
-import osr
+from osgeo import gdal
+from osgeo import osr
 import time
 
 

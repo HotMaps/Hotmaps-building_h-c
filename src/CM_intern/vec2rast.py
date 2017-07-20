@@ -1,6 +1,8 @@
-from osgeo import gdal, ogr, osr
-import os, time
-
+import os
+import time
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 '''
 To create the raster consider following data types:
 

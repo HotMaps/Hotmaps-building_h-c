@@ -6,8 +6,10 @@ Created on Fri Jun  2 15:21:48 2017
 """
 
 import numpy as np
-import ogr,osr
-import gdal
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
+
 
 def test(x0, y0, col, row):
     x = (x0 + np.arange(col)*100)

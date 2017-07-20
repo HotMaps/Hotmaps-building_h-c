@@ -1,4 +1,6 @@
-import ogr, gdal, osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 
 def gdal_rasterize(vector_fn, raster_fn, targetfield, pixel_size, NoData_value, extention):
     

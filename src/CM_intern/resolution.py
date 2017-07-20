@@ -1,5 +1,7 @@
-from osgeo import ogr,osr
-import os,time
+from osgeo import ogr
+from osgeo import osr
+import os
+import time
 
 
 def sample_point(input_layer_path, output_lyr_path):

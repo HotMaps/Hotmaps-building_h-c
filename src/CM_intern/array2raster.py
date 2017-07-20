@@ -1,4 +1,5 @@
-import gdal, osr
+from osgeo import gdal
+from osgeo import osr
 
 
 
