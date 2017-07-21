@@ -44,7 +44,21 @@ def indexing(UsefulDemandRaster, X, Y):
     yIndex = np.floor((y0-Y)/100.0).astype(int)
     band1 = UsefulDemandDataSource.GetRasterBand(1)
     arrUsefulDemand = band1.ReadAsArray()
-    spec_demand = arrUsefulDemand[yIndex, xIndex]
+    # find the indices which are out of range of the raster
+    h, w = arrUsefulDemand.shape
+    l = yIndex.size
+    # define specific demand array with the same length as l and fill it with
+    # NaN
+    spec_demand = np.empty(l)
+    outRangeY = np.concatenate((np.argwhere(yIndex < 0),
+                                np.argwhere(yIndex >= h)), axis=0)
+    outRangeX = np.concatenate((np.argwhere(xIndex < 0),
+                                np.argwhere(xIndex >= w)), axis=0)
+    outRange = np.union1d(outRangeY, outRangeX)
+    IndexInRange = np.setdiff1d(np.arange(l), outRange)
+    # fill elements which are in range
+    spec_demand[IndexInRange] = arrUsefulDemand[yIndex[IndexInRange],
+                                                xIndex[IndexInRange]]
     UsefulDemandDataSource = None
     return spec_demand
 

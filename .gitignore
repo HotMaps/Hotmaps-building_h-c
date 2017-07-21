@@ -22,14 +22,10 @@ src/CM/CM_TUW9/\.metadata/
 
 src/Outputs/
 
+src/AD/data_warehouse_intern/
 
-*.pyc
+src/CM_intern/Frankfurt/
 
-\.pydevproject
+src/CM_intern/Test/
 
-\.project
-
-src/AD/final_data/
-
-\.settings/
-
+src/CM_intern/Old/
