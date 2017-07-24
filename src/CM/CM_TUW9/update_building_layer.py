@@ -41,7 +41,7 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
     geom_typ = inLayer.GetGeomType()
     geom_typ_dict = {1: ogr.wkbPoint, 3: ogr.wkbPolygon}
     if geom_typ not in list(geom_typ_dict.keys()):
-        raise("input layer is not supported!")
+        raise Exception("Geometry type of the input layer is not supported!")
     outLayer = outDataSource.CreateLayer("Building_lyr_updated", srs,
                                          geom_type=geom_typ_dict[geom_typ])
     for i, item in enumerate(csv_cols):
