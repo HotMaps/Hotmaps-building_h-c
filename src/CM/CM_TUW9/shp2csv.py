@@ -136,14 +136,17 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
         however, recalculation of it does not cause deviation since basically
         it is should be similar to the input
         '''
-        fieldvalues[fid, FootprintIndex] = geom.GetArea()
+        if geom.GetGeometryName() == 'POINT':
+            fieldvalues[fid, FootprintIndex] = 0
+        else:
+            fieldvalues[fid, FootprintIndex] = geom.GetArea()
         inFeature = inLayer.GetNextFeature()
     if 'GFA' not in fieldList[newFieldList]:
         fieldvalues[:, GFAIndex] = fieldvalues[:, FootprintIndex] * \
             fieldvalues[:, NrFloorIndex]
     else:
         # Assign a value to GFA for the attributes that have no entries
-        k = np.argwhere(np.isnan(fieldvalues[:, GFAIndex]) or
+        k = np.argwhere(np.isnan(fieldvalues[:, GFAIndex]) +
                         fieldvalues[:, GFAIndex] == 0)
         noGFA = k[::2]
         fieldvalues[noGFA, GFAIndex] = fieldvalues[noGFA, FootprintIndex] * \
