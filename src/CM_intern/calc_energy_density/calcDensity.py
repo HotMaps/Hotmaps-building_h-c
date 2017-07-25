@@ -447,7 +447,7 @@ class ClassCalcDensity():
     def __init__(self, prj_path ):
         
         #Raise error if Data path doesn't exist
-        print("Project Path: %s" % os.path.exists(prj_path))
+        print("Project Path: %s" % prj_path)
         if not os.path.exists(prj_path):
             print("Project Path doesn't exist")
         
