@@ -197,7 +197,9 @@ class ExtractAndTransformOSMData():
         
         self._country_file_list = []
         for (dirpath,dirnames,filenames) in os.walk(self.input_data_path):
-            self._country_file_list.extend(filenames)
+            for fn in filenames:
+                if fn.endswith(".shp.zip"):
+                    self._country_file_list.append(fn)
     
         print(self._country_file_list)
         
