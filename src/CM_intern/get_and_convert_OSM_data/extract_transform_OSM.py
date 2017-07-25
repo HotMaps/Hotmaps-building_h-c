@@ -215,7 +215,7 @@ class ExtractAndTransformOSMData():
     
     def extract_and_reproject_files(self):
         
-        for file_ in self._country_file_list:
+        for file_ in sorted(self._country_file_list):
             print(file_)
             file_ = "%s/%s" %(self.input_data_path, file_)
             self._check_files2extractAreproject(file_, self.OSM_input_feat_dict)
@@ -228,15 +228,25 @@ class ExtractAndTransformOSMData():
         input_base_name = os.path.basename(file_)
         country_id = input_base_name.split("-")[0]
         building_lyr_path_out2 = "%s/%s/" % (self.output_data_path, country_id)
+        """
+        # Test time difference between input and output directory (exists if not same machine)
+        test_file_input = "%s/test.test" %(os.path.dirname(file_))
+        test_file_output = "%s/test.test" %(self.output_data_path)
+        open(test_file_input, 'a').close()
+        open(test_file_output, 'a').close()
+        mod_time_in = os.stat(test_file_input).st_mtime
+        mod_time_out = os.stat(test_file_output).st_mtime
         
-        
-    
+        TIME_DIFF = mod_time_in - mod_time_out
+        os.remove(test_file_input)
+        os.remove(test_file_output)
+        """
         process_any_file = False
         if not os.path.exists(self.input_data_path):
             print("OSM lyr input file doesn't exist: %s" % self.input_data_path )
             return False
         
-        mod_time_in = os.stat(self.input_data_path).st_mtime
+        mod_time_in = os.stat(file_).st_mtime
         #unzip Files
         with closing(zipfile.ZipFile(file_)) as zfile:
             for info in zfile.infolist():
@@ -247,14 +257,25 @@ class ExtractAndTransformOSMData():
                         building_lyr_file_out = ("%s/%s" 
                                                 % (building_lyr_path_out2
                                                 , info.filename))
+                        building_lyr_file_out3035 = (building_lyr_file_out[:-4] 
+                                                     + "_3035" + building_lyr_file_out[-4:])
+                        
+                            
+                        
                         print_outout += "Extract: %s to \n     %s" %(info.filename, building_lyr_file_out)
                         
                         
                         
                         process_file = True
-                        if os.path.exists(building_lyr_file_out):
-                            print_outout += "\n" + "  File exists"
+                        if os.path.exists(building_lyr_file_out3035):
+                            mod_time_out = os.stat(building_lyr_file_out3035).st_mtime
+                        elif os.path.exists(building_lyr_file_out):
                             mod_time_out = os.stat(building_lyr_file_out).st_mtime
+                        else: 
+                            mod_time_out = 0
+                        
+                        if mod_time_out > 0:
+                            print_outout += "\n" + "  File exists"
                             if mod_time_out > mod_time_in:
                                 process_file = False
                             else:
@@ -263,10 +284,11 @@ class ExtractAndTransformOSMData():
                             print_outout += "\n" + "  File doesn't exists"
                         
                         if process_file == True:
-                            process_any_file = True
                             zfile.extract(info, building_lyr_path_out2)
+                            if not building_lyr_file_out.endswith("cpg"):
+                                process_any_file = True
                             
-                        if building_lyr_file_out.endswith("shp"):
+                        if building_lyr_file_out.endswith("shp"): 
                             building_lyr_file_out2 = building_lyr_file_out
                             
                             print(print_outout)
@@ -278,17 +300,32 @@ class ExtractAndTransformOSMData():
         NEW_SHAPE_FILE = False
         building_lyr_file_out3 = building_lyr_file_out2.replace(".shp", "_3035.shp")    
         
-        mod_time_out = os.stat(building_lyr_file_out2).st_mtime
+        
         if os.path.exists(building_lyr_file_out3):
             mod_time_3035 = os.stat(building_lyr_file_out3).st_mtime
         else: mod_time_3035 = 0   
-            
-        if process_any_file == True or mod_time_3035 < mod_time_out:
+        if os.path.exists(building_lyr_file_out3[:-3] + "cpg"):
+            mod_time_in = os.stat(building_lyr_file_out3[:-3] + "cpg").st_mtime
+        #Compare with modification time of shp.zip file   
+        if process_any_file == True or mod_time_3035 < mod_time_in:
             # Transformation of Layer CRS
             rp.reprojection(building_lyr_file_out2, building_lyr_file_out3, self.buildings_input_feat)
             NEW_SHAPE_FILE = True
             print("New reprojected files: %s" % building_lyr_file_out3)
         
+        for (dirpath,dirnames,filenames) in os.walk(os.path.dirname(building_lyr_file_out3)):
+            for fn in filenames:
+                if "_3035." in fn:
+                    pass
+                else:
+                    full_fn = "%s/%s" %(dirpath, fn)
+                    full_fn_3035 = full_fn[:-4] + "_3035" + full_fn[-4:]
+                    if os.path.exists(full_fn_3035):
+                        try:
+                            os.remove(full_fn)
+                        except:
+                            pass
+                    
         return building_lyr_file_out3, NEW_SHAPE_FILE
         
         
