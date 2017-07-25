@@ -44,3 +44,7 @@ src/CM_intern/calc_energy_density/HOTMAPS___FirstMess/ED3/DATA/
 *.qgs~
 
 *.so
+
+src/CM_intern/get_and_convert_OSM_data/test\.html
+
+src/CM_intern/get_and_convert_OSM_data/links\.txt
