@@ -1,14 +1,15 @@
 import gdal, ogr, os, osr, time
 import numpy as np
-from modules.array2raster import array2raster
+import modules.array2raster as a2r
 '''
-This code consideres the input raster with resolution of 1km2 and outputs a raster with 100m2 resolution. in case, different configuration in term of resolution
+This code considers the input raster with resolution of 1km2 and outputs a raster with 100m2 resolution. in case, different configuration in term of resolution
 is required, the corresponding factors should be set again (x_res_factor and y_res_factor)
 
 pixelWidth and pixelHeight are used for the output raster file.
 '''
 
-def HighRes(inRasterPath, pixelWidth, pixelHeight, dataType, outRasterPath, noDataValue):
+def HighRes(inRasterPath, pixelWidth, pixelHeight
+            , dataType, outRasterPath, noDataValue, saveAsRaster= True):
     inDatasource = gdal.Open(inRasterPath)
     gt = inDatasource.GetGeoTransform()
     minx = gt[0]
@@ -33,7 +34,14 @@ def HighRes(inRasterPath, pixelWidth, pixelHeight, dataType, outRasterPath, noDa
     
     inDatasource = None
     rasterOrigin = (minx,maxy)
-    array2raster(outRasterPath,rasterOrigin,pixelWidth,pixelHeight, dataType, arr_out, noDataValue) # convert array to raster
+    if saveAsRaster == True:
+        a2r.array2raster(outRasterPath, rasterOrigin, pixelWidth
+                         , pixelHeight, dataType
+                         , arr_out, noDataValue) # convert array to raster
+        
+    return (outRasterPath, rasterOrigin, pixelWidth
+                         , pixelHeight, dataType
+                         , arr_out, noDataValue)
 
     
 if __name__ == "__main__":

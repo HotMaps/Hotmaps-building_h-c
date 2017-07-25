@@ -1,8 +1,11 @@
 import gdal, ogr, os, time
 import numpy as np
-from modules.array2raster import array2raster
+import modules.array2raster  as a2r #array2raster
 
-def rasterize(inRasterPath, inVectorPath, fieldName, dataType, outRasterPath, noDataValue):
+def rasterize(inRasterPath, inVectorPath, fieldName, dataType
+              , outRasterPath, noDataValue, saveAsRaster=True
+              , pixelWidth=100, pixelHeight=-100):
+    
     inRastDatasource = gdal.Open(inRasterPath)
     transform = inRastDatasource.GetGeoTransform()
     minx = transform[0]
@@ -35,16 +38,18 @@ def rasterize(inRasterPath, inVectorPath, fieldName, dataType, outRasterPath, no
             x_index = round((x - x_vec_origin)/1000)
             y_index = round((y_vec_origin - y)/1000)
             temp = inFeature.GetField(fieldName)
-            """for m in range(10):
-                for n in range(10):
-                    arr_out[10*y_index+n, 10*x_index+m] = temp
-            """
+            
             arr_out[10*y_index:10*y_index+10, 10*x_index:10*x_index+10] = temp
     inFeature = None   
     # rev_array = arr_out[::-1] # reverse array so the tif looks like the array
-
-    array2raster(outRasterPath, rasterOrigin, 100, -100, dataType, arr_out, noDataValue) # convert array to raster
-
+    if saveAsRaster == True:
+        a2r.array2raster(outRasterPath, rasterOrigin, pixelWidth
+                         , pixelHeight, dataType
+                         , arr_out, noDataValue) # convert array to raster
+        
+    return (outRasterPath, rasterOrigin, pixelWidth
+                         , pixelHeight, dataType
+                         , arr_out, noDataValue)
 
 
     

@@ -1,7 +1,8 @@
 import gdal, os, math
 import numpy as np
-from modules.array2raster import array2raster
 import time
+
+import modules.array2raster as a2r # array2raster
 '''
 This code is performed for raster layers which their extent is greater than population raster. 
 also their resolution should be smaller or equal to the population raster and also be a multiplicand of "10".
@@ -10,7 +11,8 @@ Here also it should be noted that the input raster should have the dimensions of
 '''
 
 
-def RastExtMod(inRasterPath, cutRasterPath, dataType, outRasterPath,noDataValue, saveAsRaster= True):
+def RastExtMod(inRasterPath, cutRasterPath, dataType, outRasterPath
+               , noDataValue, saveAsRaster= True):
     cutRastDatasource = gdal.Open(cutRasterPath)
     transform = cutRastDatasource.GetGeoTransform()
     minx = transform[0]
@@ -39,24 +41,21 @@ def RastExtMod(inRasterPath, cutRasterPath, dataType, outRasterPath,noDataValue,
     b2 = inRastDatasource.GetRasterBand(1)
     arr2 = b2.ReadAsArray()
 
-    xoff = abs((maxY - maxy)/transform2[5])
-    yoff = abs((minx - minX)/transform2[1])
-    """
-    # 5 sec versus 0.0001 sec fpr AT130/AT222/AT127
-    for i in range(x_dim):
-        for j in range(y_dim):
-            arr_out[i,j] = arr2[i+xoff, j+yoff]
-    """
+    xoff = int(abs((maxY - maxy)/transform2[5]))
+    yoff = int(abs((minx - minX)/transform2[1]))
+
     arr_out[:,:] = arr2[xoff:xoff+x_dim, yoff:yoff+y_dim]
     arr = None
     inRastDatasource = None
 
     if saveAsRaster:
-        array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight, dataType, arr_out, noDataValue) # convert array to raster
-        arr = None
-    else: 
-        return arr_out
-    
+        a2r.array2raster(outRasterPath, rasterOrigin, pixelWidth
+                         , pixelHeight, dataType
+                         , arr_out, noDataValue) # convert array to raster
+        
+    return (outRasterPath, rasterOrigin, pixelWidth
+                         , pixelHeight, dataType
+                         , arr_out, noDataValue)
     
 if __name__ == "__main__":
 

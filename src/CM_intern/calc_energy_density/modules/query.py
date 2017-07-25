@@ -26,7 +26,7 @@ def query(input_vec_path, extent, dict_lyr_path, key_field, value_field, out_fie
                 temp1 = inFeature.GetField(key_field)
                 temp2 = inFeature.GetField(value_field)
                 
-                if dict_feat.has_key(temp1):
+                if temp1 in dict_feat:
                     if not (temp2 is None):
                         dict_feat[temp1] += temp2
                 else:
@@ -114,7 +114,7 @@ def query(input_vec_path, extent, dict_lyr_path, key_field, value_field, out_fie
         key_field_name = inFeature.GetField(key_field)
         
             
-        if dict_feat.has_key(str(key_field_name)):
+        if str(key_field_name) in dict_feat:
             if VERBOSE == True: dict_feat2[key_field_name] = ""
             geom = inFeature.GetGeometryRef()
             x = geom.Centroid().GetX()

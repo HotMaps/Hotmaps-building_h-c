@@ -2,14 +2,17 @@ import numpy as np
 import shutil
 import sys, os, time, gdal, ogr
 
-import modules.Subfunctions as SF
-import modules.array2raster as a2r
-from modules.changeRastExt import RastExtMod
-from modules.higherRes import HighRes
-import modules.query as qu
-import modules.rasterize as ra
+import  modules.Subfunctions as SF
+import  modules.array2raster as a2r
+import  modules.changeRastExt as cre   # import RastExtMod
+import  modules.higherRes as hr        # import HighRes
+import  modules.query as qu
+import  modules.rasterize as ra
 
 #from zonal_statistics import ZonalStat
+
+import modules.cython_files.SumOfHighRes_64 as SOHR
+"""
 try:
     from modules.cython_files.SumOfHighRes_64 import CalcSum as CoreLoopSumLowRes
     from modules.cython_files.SumOfHighRes_64 import CalcAverageBased
@@ -19,6 +22,7 @@ except:
     #from cython_files.SumOfHighRes import CalcSum as CoreLoopSumLowRes
     #from cython_files.SumOfHighRes import CalcAverageBased
 #from cython_files.SumOfHighRes_py import CalcAverageBased
+"""
 DEBUG = False
 linux = "linux" in sys.platform
 
@@ -38,9 +42,7 @@ CORINE_LANDCOVER_TRANSFORM_MATRIX[21] = 0.5 # Land principally occupied by agric
 
 #CORINE_LANDCOVER_TRANSFORM_MATRIX[:] = 1
 
-feat_id_LIST = [14]  # 14refers to the feature ID of Vienna
-feat_id_LIST = range(0,20000)  # 14refers to the feature ID of Vienna
-#feat_id_LIST = range(0,50)
+
   
 EXPORT_LAYERS = True
 
@@ -155,7 +157,7 @@ def HeatDensity(r1, r2, r3, r4, r5, r7, rasterOrigin, output):
     result = None
 
 def _cut_pop_layer_get_layer_origin(strd_raster_path_full, strd_raster_path
-                                    , strd_vector_path, datatype):
+                                    , strd_vector_path, datatype, NUTS3_feat_id_LIST):
     
     SaveLayerDict = {}
     if strd_raster_path_full != strd_raster_path:
@@ -164,7 +166,7 @@ def _cut_pop_layer_get_layer_origin(strd_raster_path_full, strd_raster_path
         
         (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_pop_cut 
          , noDataVal_, feat_name_dict) = SF.cut_population_layer(
-                         feat_id_LIST
+                         NUTS3_feat_id_LIST
                          , strd_vector_path
                          , strd_raster_path_full
                          , strd_raster_path
@@ -215,14 +217,21 @@ def _process1(org_data_path, temp_path, strd_raster_path, r1, noDataValue):
     datatype='int16'
     out_raster_path = "%s/%s" %(temp_path, "temp1.tif")
 
-    (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out, noDataVal_) = RastExtMod(
-                        in_rast_path, strd_raster_path, datatype, out_raster_path, noDataValue)
+    return_tuple = cre.RastExtMod(
+                        in_rast_path, strd_raster_path, datatype
+                        , out_raster_path, noDataValue, saveAsRaster=False)
     
-    if DEBUG == True:
-        SaveLayerDict["temp1"] = (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out , noDataVal_)
-    #ds1 = gdal.Open(out_raster_path)
-    #b11 = ds1.GetRasterBand(1)
-    #arr1 = b11.ReadAsArray()
+    if len(return_tuple) > 1:
+        (outRastPath, rasterOrigin2, pxWidth, pxHeight
+         , DatType, arr_out, noDataVal_) = return_tuple
+
+                         
+        if DEBUG == True:
+            SaveLayerDict["temp1"] = (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out , noDataVal_)
+    else:
+        arr_out = return_tuple
+    
+
     arr1 = arr_out
     data_r1 = np.zeros_like(arr1)
     idxM = arr1 > 0
@@ -252,7 +261,7 @@ def _process1a(org_data_path, r7, strd_raster_path, noDataValue):
     datatype='int16'
     out_raster_path = r7 +"_before"
 
-    (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out, noDataVal_) = RastExtMod(
+    (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out, noDataVal_) = cre.RastExtMod(
                         in_rast_path, strd_raster_path, datatype, out_raster_path, noDataValue)
     
     if DEBUG == True:
@@ -287,8 +296,10 @@ def _process2(strd_raster_path, pixelWidth, pixelHeight, r2, noDataValue):
     SaveLayerDict = {}
     datatype = 'float32'
     
-    (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, data_r2, noDataVal_) = HighRes(
-                                in_raster_path, pixelWidth, pixelHeight, datatype, r2, noDataValue)
+    (outRastPath, rasterOrigin2, pxWidth, pxHeight
+     , DatType, data_r2, noDataVal_) = hr.HighRes(
+                                in_raster_path, pixelWidth, pixelHeight
+                                , datatype, r2, noDataValue)
     
     print ("HighRes took: %4.2f sec " % (time.time()-st))
     st1 = time.time()
@@ -297,7 +308,7 @@ def _process2(strd_raster_path, pixelWidth, pixelHeight, r2, noDataValue):
                                  , pxWidth, pxHeight, DatType
                                  , data_r2 , noDataVal_)
     print (np.sum(data_r2))          
-    data_r2 = CalcAverageBased(data_r2, 10, 6, 1)
+    data_r2 = SOHR.CalcAverageBased(data_r2, 10, 6, 1)
     print (np.sum(data_r2))
     print ("CalcAverageBased took: %4.2f sec " % (time.time()-st1))
     
@@ -337,7 +348,7 @@ def _process3(arr1, data_CLC, r3, rasterOrigin, pixelWidth,pixelHeight, noDataVa
 
 
     st1 = time.time()
-    (arr_1_km) = CoreLoopSumLowRes(arr2, 10)
+    (arr_1_km) = SOHR.CoreLoopSumLowRes(arr2, 10)
     arr1 = None
     arr2 = None
     print("Calc SumLowRes: %4.1f sec " %(time.time() - st1))
@@ -345,7 +356,7 @@ def _process3(arr1, data_CLC, r3, rasterOrigin, pixelWidth,pixelHeight, noDataVa
     
     st1 = time.time()
     #Fast Cython Version
-    data_r3 = CalcHighRes(arr_1_km, 10)
+    data_r3 = SOHR.CalcHighRes(arr_1_km, 10)
     print("Calc CalcHighRes: %4.1f sec " %(time.time() - st1))
     
 
@@ -430,297 +441,328 @@ def _process5(org_data_path, temp_path, extent, strd_raster_path, r5, noDataValu
 
 
 #@profile
-def main_process(prj_path = None):
 
-    start_time = time.time()
+class ClassCalcDensity():
     
-    pixelWidth = 100
-    pixelHeight = -100
-    if prj_path == None:
-        if linux:
-            prj_path    = "./DATA"  
-        else:
-            prj_path    = "Z:/personen/Mostafa/HeatDensityMap - Copy"
-    
-    #Raise error if Data path doesn#T exist
-    assert(os.path.exists(prj_path))
-    
-    
-    
-    prj_path_output    = "%s/output" %prj_path    
-    
-    org_data_path    = prj_path  + os.sep + "Original Data"
-    proc_data_path    = prj_path_output  + os.sep + "Processed Data"    
-    temp_path        = prj_path_output  + os.sep + "Temp"
-    
-    if not os.path.exists(proc_data_path):
-        os.makedirs(proc_data_path)
-    if not os.path.exists(temp_path):
-        os.makedirs(temp_path)
-    # inputs
-    strd_vector_path = org_data_path+ os.sep + "NUTS3.shp"
-    strd_raster_path_full = org_data_path+ os.sep + "Population.tif"
-    strd_raster_path = "%s_small.tif" % strd_raster_path_full[:-4]
-    #strd_raster_path = strd_raster_path_full
-    # outputs
-    #r1                = prj_path_output + os.sep + "ss_pop_cut.tif"
-    r1                = proc_data_path + os.sep + "ss_pop_cut.tif"
-    r2                = proc_data_path + os.sep + "Pop_1km_100m.tif"
-    r3                = proc_data_path + os.sep + "sum_ss_1km.tif"
-    #r4                = proc_data_path + os.sep + "Dem_in_Nuts.tif"
-    r4                = temp_path + os.sep + "temp4.tif"
-    r5                = proc_data_path + os.sep + "Pop_in_Nuts.tif"
-    r6                = proc_data_path + os.sep + "CorineLU.tif"
-    r7                = proc_data_path + os.sep + "CorineLU_cut.tif"
-    
-    output            = proc_data_path + os.sep + "demand_v2.tif" 
-    
-    # array2raster output datatype
-    datatype = 'int32'
-    
-    del_temp_path    = False
-    process1           = True
-    process1a          = True
-    process2           = True
-    process3           = True
-    process4         = True
-    process5        = True
-
-    
-    if del_temp_path:    
-        if os.path.exists(temp_path):
-            shutil.rmtree(temp_path)   
-        if not os.path.exists(temp_path):
-            os.makedirs(temp_path)    
-    if os.path.exists(r1):
-        process1 = False
-    if os.path.exists(r2):
-        process2 = False
-    if os.path.exists(r3):
-        process3 = False
-    if os.path.exists(r4):
-        process4 = False
-    if os.path.exists(r5):
-        process5 = False
-    
-    
-    # common parameters
-    noDataValue = -17.3
-    #Standard population raster layer
-    # cut standard population raster
-    """
-    """
-    SaveLayerDict = {}
-    
-    rasterOrigin, extent, SaveLayerDict_ = _cut_pop_layer_get_layer_origin(strd_raster_path_full, strd_raster_path
-                                    , strd_vector_path, datatype)
-    
-    
-    for k in SaveLayerDict_.keys():
-        LL = SaveLayerDict_[k]
-        a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
-        del LL
-        #SaveLayerDict[k] = SaveLayerDict_[k]
-        del SaveLayerDict_[k]
+    def __init__(self, prj_path ):
         
-
-    print("Preprepartion took: %4.1f " %(time.time() - start_time))
-
-    if process1:
-        # cuts SOIL Sealing cuts to same size as population layer, smaller data processing (Values above 100%...)
-        # Save as raster layer
+        #Raise error if Data path doesn't exist
+        print("Project Path: %s" % os.path.exists(prj_path))
+        if not os.path.exists(prj_path):
+            print("Project Path doesn't exist")
         
-        st = time.time()
-        print("\nProcess 1 SoilSealing")
+        assert(os.path.exists(prj_path))
+        self.prj_path = prj_path
         
-        SaveLayerDict_ = _process1(org_data_path, temp_path, strd_raster_path, r1, noDataValue)
+        # Input data path 
+        org_data_path = prj_path  + os.sep + "Original Data"
+        if not os.path.exists(org_data_path):
+            print("Input data path doesn't exist : %s" % org_data_path)
         
-        for k in SaveLayerDict_.keys():
-            print (k)
-            SaveLayerDict[k] = SaveLayerDict_[k]
-            del SaveLayerDict_[k]
-            (r,c) = SaveLayerDict[k][5].shape
+        self.org_data_path = org_data_path
         
-        elapsed_time = time.time() - st
-        print("Process 1 took: %4.1f seconds" %elapsed_time)
-    
-    if process1a and (process1 or process3):      
-        # cuts Corine cuts to same size as population layer, smaller data processing (Values above 100%...)
-        # Save as raster layer
-        st = time.time()
-        print("\nProcess 1a Corine Landcover data")
-        SaveLayerDict_ = _process1a(org_data_path, r7, strd_raster_path, noDataValue)
+        # final output path
+        self.prj_path_output    = "%s/output" %prj_path    
+        # Path containing processed Data
+        self.proc_data_path    = self.prj_path_output  + os.sep + "Processed Data"    
+        # Path containing temporal Data
+        self.temp_path        = self.prj_path_output  + os.sep + "Temp"
         
-        for k in SaveLayerDict_.keys():
-            print (k)
-            SaveLayerDict[k] = SaveLayerDict_[k]
-            del SaveLayerDict_[k]
+        #create if doesn't exist
+        if not os.path.exists(self.proc_data_path):
+            os.makedirs(self.proc_data_path)
+        if not os.path.exists(self.temp_path):
+            os.makedirs(self.temp_path)
+        
+        # define raster size
+        self.pixelWidth = 100
+        self.pixelHeight = -100 
+        
+        # input data files
+        
+        self.strd_vector_path = self.org_data_path+ os.sep + "NUTS3.shp"
+        self.strd_raster_path_full = self.org_data_path+ os.sep + "Population.tif"
+        self.strd_raster_path = "%s_small.tif" % self.strd_raster_path_full[:-4]
+        
+        #outputs
+        
+        self.r1                = self.proc_data_path + os.sep + "ss_pop_cut.tif"
+        self.r2                = self.proc_data_path + os.sep + "Pop_1km_100m.tif"
+        self.r3                = self.proc_data_path + os.sep + "sum_ss_1km.tif"
+        #r4                = proc_data_path + os.sep + "Dem_in_Nuts.tif"
+        self.r4                = self.temp_path + os.sep + "temp4.tif"
+        self.r5                = self.proc_data_path + os.sep + "Pop_in_Nuts.tif"
+        self.r6                = self.proc_data_path + os.sep + "CorineLU.tif"
+        self.r7                = self.proc_data_path + os.sep + "CorineLU_cut.tif"
+        
+        self.output            = self.proc_data_path + os.sep + "demand_v2.tif" 
+      
+      
+        # array2raster output datatype
+        self.datatype = 'int32'
+        
+    def main_process(self, NUTS3_feat_id_LIST):
+        
+        
+        self.NUTS3_feat_id_LIST = NUTS3_feat_id_LIST
+        
+        start_time = time.time()
         
 
         
-        elapsed_time = time.time() - st
-        print("Process 1a took: %4.1f seconds" %elapsed_time)
+        del_temp_path    = True
+        process1           = True
+        process1a          = True
+        process2           = True
+        process3           = True
+        process4         = True
+        process5        = True
+    
         
-    if process2:
-        # transforms population layer from 1x1 km to 100x100m
-        # saves as raster layer
-        st = time.time()
-        print("\nProcess 2")
+        if del_temp_path:    
+            if os.path.exists(self.temp_path):
+                shutil.rmtree(self.temp_path)   
+            if not os.path.exists(self.temp_path):
+                os.makedirs(self.temp_path)    
+        if 0==1:
+            if os.path.exists(self.r1):
+                process1 = False
+            if os.path.exists(self.r2):
+                process2 = False
+            if os.path.exists(self.r3):
+                process3 = False
+            if os.path.exists(self.r4):
+                process4 = False
+            if os.path.exists(self.r5):
+                process5 = False
         
-        SaveLayerDict_ = _process2(strd_raster_path, pixelWidth, pixelHeight, r2, noDataValue)
-        for k in SaveLayerDict_.keys():
-            print (k)
-            if k == "data_r2" and EXPORT_LAYERS == True:
-                print ("Eport %s" %k)
-                stx = time.time()
-                LL = SaveLayerDict_[k]
-                a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
-                print (time.time() -stx)
-                # Replace Matrix by Path
-                SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
-            SaveLayerDict[k] = SaveLayerDict_[k]
+        
+        # common parameters
+        noDataValue = -17.3
+        #Standard population raster layer
+        # cut standard population raster
+        """
+        """
+        SaveLayerDict = {}
+        
+        rasterOrigin, extent, SaveLayerDict_ = _cut_pop_layer_get_layer_origin(self.strd_raster_path_full
+                                                        , self.strd_raster_path
+                                                        , self.strd_vector_path, self.datatype, self.NUTS3_feat_id_LIST)
+        
+        del_keys = []
+        for k in list(SaveLayerDict_.keys()):
+            LL = SaveLayerDict_[k]
+            a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+            del LL
+            #SaveLayerDict[k] = SaveLayerDict_[k]
+            del_keys.append(k)
+            #for k in del_keys:
             del SaveLayerDict_[k]
             
-        elapsed_time = time.time() - st
-        print("Process 2 took: %4.1f seconds" %elapsed_time)
-
-
-        
-    if process3:
-        # Calculate sum of soilsailing (100x100 m) for 1x1 km and write that sum on the 100x100 m layer
-        # save new raster layer
-        st = time.time()
-        print("\nProcess 3")
-        
-        #outRasterPath = "%s/%s" %(temp_path, "temp2.tif")
-        dataType = 'float32'
-        try:
-            data_r1 = SaveLayerDict["data_r1"][5]
-            if (r,c) == data_r1.shape:
-                arr1 = np.zeros_like(data_r1)
-                arr1[:, :] = data_r1 
-                reload_data = False
-            else:
-                reload_data = True
-        except:
-            reload_data = True
-        if reload_data == True:
-            input_value_raster = r1
-            arr1 = SF.rrl(input_value_raster, data_type=dataType)
-            """ds1 = gdal.Open(input_value_raster)
-            b11 = ds1.GetRasterBand(1)
-            arr1 = b11.ReadAsArray().astype(dataType)
-            """
-        data_CLC = SaveLayerDict["data_CLC"][5]
-        
-        SaveLayerDict_ = _process3(arr1, data_CLC, r3, rasterOrigin, pixelWidth,pixelHeight, noDataValue)
-        del arr1
-        for k in SaveLayerDict_.keys():
-            print (k)
-            if k == "data_r3" and EXPORT_LAYERS == True:
-                print ("Eport %s" %k)
-                stx = time.time()
-                LL = SaveLayerDict_[k]
-                a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
-                print (time.time() -stx)
-                # Replace Matrix by Path
-                SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6])  
-            SaveLayerDict[k] = SaveLayerDict_[k]
-            del SaveLayerDict_[k]
-        
-        elapsed_time3 = time.time() - st
-
-        print("Process 3 took: %4.1f seconds" %elapsed_time3)
     
-    if process4:
-        # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
-        # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
-        # and Energy Demand per Nuts region (vector layer)
-        # Store Energy Demand of corresponding NUTS REGION to each 1x1km feature
-        st = time.time()
-        print("\nProcess 4")
-        
-        SaveLayerDict_ = _process4(org_data_path, temp_path, extent, strd_raster_path, r4, noDataValue)
-        for k in SaveLayerDict_.keys():
-            print (k)
-            if k == "data_r4" and EXPORT_LAYERS == True:
-                print ("Eport %s" %k)
-                stx = time.time()
-                LL = SaveLayerDict_[k]
-                a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
-                print (time.time() -stx)
-                # Replace Matrix by Path
-                SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
-            SaveLayerDict[k] = SaveLayerDict_[k]
-            del SaveLayerDict_[k]
+        print("Preprepartion took: %4.1f " %(time.time() - start_time))
+    
+        if process1:
+            # cuts SOIL Sealing cuts to same size as population layer, smaller data processing (Values above 100%...)
+            # Save as raster layer
             
-        elapsed_time = time.time() - st
-        print("Process 4 took: %4.1f seconds" %elapsed_time)
-       
-    if process5:
-        # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
-        # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
-        # and Population per Nuts region (vector layer), same as the one two lines above
-        # Population of corresponding NUTS 3 REGION to each 1x1km feature 
-        st = time.time()
-        print("\nProcess 5") 
-        SaveLayerDict_ = _process5(org_data_path, temp_path, extent, strd_raster_path, r5, noDataValue)
-        for k in SaveLayerDict_.keys():
-            print (k)
-            if k == "data_r5" and EXPORT_LAYERS == True:
-                print ("Eport %s" %k)
-                stx = time.time()
-                LL = SaveLayerDict_[k]
-                a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
-                print (time.time() -stx)
-                # Replace Matrix by Path
-                SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
-            SaveLayerDict[k] = SaveLayerDict_[k]
-            del SaveLayerDict_[k]
-
-        elapsed_time = time.time() - st
-        print("Process 5 took: %4.1f seconds" %elapsed_time)
-
-                       
-    print ("Outputfile: %s" % output)
-    st = time.time()
-    HeatDensity(data_r1, SaveLayerDict["data_r2"][5]
-            , SaveLayerDict["data_r3"][5]
-            , SaveLayerDict["data_r4"][5]
-            , SaveLayerDict["data_r5"][5]
-            , data_CLC, rasterOrigin, output)
-
-    print("HeatDensity process took: %4.1f seconds" %(time.time() - st))
-    elapsed_time = time.time() - start_time
-    print("The whole process took: %4.1f seconds" %elapsed_time)
-
-
-    print ("Export Layers:")
-    st = time.time()
-    for k in SaveLayerDict.keys():
-        st1 = time.time()
-        LL = SaveLayerDict[k]
-        print (LL[0])
-        if type(LL[5]) is str:
-            pass
-            print ("already exported")
-        else:
+            st = time.time()
+            print("\nProcess 1 SoilSealing")
+            
+            SaveLayerDict_ = _process1(self.org_data_path, self.temp_path, self.strd_raster_path, self.r1, noDataValue)
+            
+            for k in list(SaveLayerDict_.keys()):
+                print (k)
+                SaveLayerDict[k] = SaveLayerDict_[k]
+                del SaveLayerDict_[k]
+                (r,c) = SaveLayerDict[k][5].shape
+            
+            elapsed_time = time.time() - st
+            print("Process 1 took: %4.1f seconds" %elapsed_time)
+        
+        if process1a and (process1 or process3):      
+            # cuts Corine cuts to same size as population layer, smaller data processing (Values above 100%...)
+            # Save as raster layer
+            st = time.time()
+            print("\nProcess 1a Corine Landcover data")
+            SaveLayerDict_ = _process1a(self.org_data_path, self.r7, self.strd_raster_path, noDataValue)
+            
+            for k in list(SaveLayerDict_.keys()):
+                print (k)
+                SaveLayerDict[k] = SaveLayerDict_[k]
+                del SaveLayerDict_[k]
+            
+    
+            
+            elapsed_time = time.time() - st
+            print("Process 1a took: %4.1f seconds" %elapsed_time)
+            
+        if process2:
+            # transforms population layer from 1x1 km to 100x100m
+            # saves as raster layer
+            st = time.time()
+            print("\nProcess 2")
+            
+            SaveLayerDict_ = _process2(self.strd_raster_path, self.pixelWidth
+                                       , self.pixelHeight, self.r2, noDataValue)
+            for k in list(SaveLayerDict_.keys()):
+                print (k)
+                if k == "data_r2" and EXPORT_LAYERS == True:
+                    print ("Eport %s" %k)
+                    stx = time.time()
+                    LL = SaveLayerDict_[k]
+                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    print (time.time() -stx)
+                    # Replace Matrix by Path
+                    SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
+                SaveLayerDict[k] = SaveLayerDict_[k]
+                del SaveLayerDict_[k]
+                
+            elapsed_time = time.time() - st
+            print("Process 2 took: %4.1f seconds" %elapsed_time)
+    
+    
+            
+        if process3:
+            # Calculate sum of soilsailing (100x100 m) for 1x1 km and write that sum on the 100x100 m layer
+            # save new raster layer
+            st = time.time()
+            print("\nProcess 3")
+            
+            #outRasterPath = "%s/%s" %(temp_path, "temp2.tif")
+            dataType = 'float32'
             try:
-                a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
-            except Exception as e:
-                print (e)
-        del SaveLayerDict[k]
-        print (time.time() - st1)
-    print("Process Export Layers took: %4.1f seconds" %(time.time() - st))    
+                data_r1 = SaveLayerDict["data_r1"][5]
+                if (r,c) == data_r1.shape:
+                    arr1 = np.zeros_like(data_r1)
+                    arr1[:, :] = data_r1 
+                    reload_data = False
+                else:
+                    reload_data = True
+            except:
+                reload_data = True
+            if reload_data == True:
+                input_value_raster = self.r1
+                arr1 = SF.rrl(input_value_raster, data_type=dataType)
+                """ds1 = gdal.Open(input_value_raster)
+                b11 = ds1.GetRasterBand(1)
+                arr1 = b11.ReadAsArray().astype(dataType)
+                """
+            data_CLC = SaveLayerDict["data_CLC"][5]
+            
+            SaveLayerDict_ = _process3(arr1, data_CLC, self.r3, rasterOrigin
+                                       , self.pixelWidth, self.pixelHeight, noDataValue)
+            del arr1
+            for k in list(SaveLayerDict_.keys()):
+                print (k)
+                if k == "data_r3" and EXPORT_LAYERS == True:
+                    print ("Eport %s" %k)
+                    stx = time.time()
+                    LL = SaveLayerDict_[k]
+                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    print (time.time() -stx)
+                    # Replace Matrix by Path
+                    SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6])  
+                SaveLayerDict[k] = SaveLayerDict_[k]
+                del SaveLayerDict_[k]
+            
+            elapsed_time3 = time.time() - st
+    
+            print("Process 3 took: %4.1f seconds" %elapsed_time3)
         
-        
-        
-    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Close XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    if del_temp_path:
-        if os.path.exists(temp_path):
-            shutil.rmtree(temp_path)
-    sys.exit("Done!")
+        if process4:
+            # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
+            # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
+            # and Energy Demand per Nuts region (vector layer)
+            # Store Energy Demand of corresponding NUTS REGION to each 1x1km feature
+            st = time.time()
+            print("\nProcess 4")
+            
+            SaveLayerDict_ = _process4(self.org_data_path, self.temp_path, extent
+                                       , self.strd_raster_path, self.r4, noDataValue)
+            for k in list(SaveLayerDict_.keys()):
+                print (k)
+                if k == "data_r4" and EXPORT_LAYERS == True:
+                    print ("Eport %s" %k)
+                    stx = time.time()
+                    LL = SaveLayerDict_[k]
+                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    print (time.time() -stx)
+                    # Replace Matrix by Path
+                    SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
+                SaveLayerDict[k] = SaveLayerDict_[k]
+                del SaveLayerDict_[k]
+                
+            elapsed_time = time.time() - st
+            print("Process 4 took: %4.1f seconds" %elapsed_time)
+           
+        if process5:
+            # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
+            # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
+            # and Population per Nuts region (vector layer), same as the one two lines above
+            # Population of corresponding NUTS 3 REGION to each 1x1km feature 
+            st = time.time()
+            print("\nProcess 5") 
+            SaveLayerDict_ = _process5(self.org_data_path, self.temp_path
+                                       , extent, self.strd_raster_path, self.r5, noDataValue)
+            for k in list(SaveLayerDict_.keys()):
+                print (k)
+                if k == "data_r5" and EXPORT_LAYERS == True:
+                    print ("Eport %s" %k)
+                    stx = time.time()
+                    LL = SaveLayerDict_[k]
+                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    print (time.time() -stx)
+                    # Replace Matrix by Path
+                    SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
+                SaveLayerDict[k] = SaveLayerDict_[k]
+                del SaveLayerDict_[k]
+    
+            elapsed_time = time.time() - st
+            print("Process 5 took: %4.1f seconds" %elapsed_time)
+    
+                           
+        print ("Outputfile: %s" % self.output)
+        st = time.time()
+        HeatDensity(data_r1, SaveLayerDict["data_r2"][5]
+                , SaveLayerDict["data_r3"][5]
+                , SaveLayerDict["data_r4"][5]
+                , SaveLayerDict["data_r5"][5]
+                , data_CLC, rasterOrigin, self.output)
+    
+        print("HeatDensity process took: %4.1f seconds" %(time.time() - st))
+        elapsed_time = time.time() - start_time
+        print("The whole process took: %4.1f seconds" %elapsed_time)
+    
+    
+        print ("Export Layers:")
+        st = time.time()
+        for k in list(SaveLayerDict.keys()):
+            st1 = time.time()
+            LL = SaveLayerDict[k]
+            print (LL[0])
+            if type(LL[5]) is str:
+                pass
+                print ("already exported")
+            else:
+                try:
+                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                except Exception as e:
+                    print (e)
+            del SaveLayerDict[k]
+            print (time.time() - st1)
+        print("Process Export Layers took: %4.1f seconds" %(time.time() - st))    
+            
+            
+            
+        # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Close XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        if del_temp_path:
+            if os.path.exists(self.temp_path):
+                shutil.rmtree(self.temp_path)
+        print ("Done!")
+        return
+
 
     
 if __name__ == "__main__":

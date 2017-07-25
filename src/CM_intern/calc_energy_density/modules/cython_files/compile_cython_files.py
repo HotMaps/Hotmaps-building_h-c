@@ -7,6 +7,7 @@ from shutil import move, copyfile
 import os,sys,shutil
 import numpy
 
+PYTHON_VERSION = sys.version_info[0]
 
 
 
@@ -46,14 +47,14 @@ def compilecythonfiles():
         string_must_be_included = directory
 
     CopyInputFiles(string_must_be_included, create_freeze)
-    print "all .pyx files have been cythoned"
+    print("all .pyx files have been cythoned")
 
 class CopyInputFiles():
 
 
     def __init__(self,directory
                  , create_freeze=False):
-
+        print(sys.version_info)
         run_64bit_python = sys.maxsize > 2**32
         if run_64bit_python == True:
             fn_bit_info ="_64"
@@ -65,9 +66,9 @@ class CopyInputFiles():
         curr_dir = curr_dir1[0:-len(a)-1]
         curr_dir = curr_dir.replace("\\","/")
         #curr_dir = curr_dir[:-6]
-        print curr_dir
+        print(curr_dir)
         #curr_dir = curr_dir[:-6]
-        print curr_dir
+        print(curr_dir)
         if create_freeze == False:
             extensions = [".pyx"]
             curr_dir2move = curr_dir.rstrip("/") +"/"
@@ -83,9 +84,10 @@ class CopyInputFiles():
             print (key + ": \n   " + str(file_dict[key]) + "\n")
         f = file_dict
         for key in file_dict:
-            if type(exclude_directories) is str or type(exclude_directories) is unicode:
-               if exclude_directories in key:
-                   continue
+            if (type(exclude_directories) is str or 
+                    (PYTHON_VERSION == 2 and type(exclude_directories) is unicode)):
+                if exclude_directories in key:
+                    continue
             else:
                 exclude_clause_fullfilled = True
                 for jj in exclude_directories:
@@ -100,9 +102,10 @@ class CopyInputFiles():
 
             curr_file_data = file_dict[key]
             curr_dir_file = key
-            if type(directory) is str or type(directory) is unicode:
-               if directory not in key:
-                   continue
+            if (type(directory) is str or 
+                    (PYTHON_VERSION == 2 and type(directory) is unicode)):
+                if directory not in key:
+                    continue
             elif type(directory) is list:
                 criteria_fullfilled = True
                 for jj in directory:
@@ -139,7 +142,7 @@ class CopyInputFiles():
 
                 new_file_excl_ext = pyx_file_name2build
 
-                print new_file_excl_ext
+                print(new_file_excl_ext)
 
                 src_folder =  curr_file_data[0] + curr_file_data[1]
                 dest_folder = curr_dir2move + curr_file_data[1]
