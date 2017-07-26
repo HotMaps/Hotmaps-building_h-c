@@ -3,7 +3,7 @@ import sys
 path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 if path not in sys.path:
     sys.path.append(path)
-from AD.F63_bu_heat_density_map.main import ad_f63
+from AD.F63_intern.main import ad_f63
 import CM.CM_TUW9.run_cm as CM9
 
 
@@ -24,7 +24,9 @@ if __name__ == "__main__":
         os.mkdir(output_dir)
     ###########################################################################
     spec_demand_csv = ''
+    data_warehouse = path + os.sep + 'AD/data_warehouse_intern'
+    building_strd_info_csv = data_warehouse + os.sep + '/EPC_UPRN_Coordinate.csv'
     building_strd_info_csv = ''
-    inShapefile = ''
+    inShapefile = data_warehouse + os.sep + '/Sample_OSM_Building_Lyr.shp'
     execute(spec_demand_csv, building_strd_info_csv, inShapefile)
     print('Calculation ended successfully!')
