@@ -1,6 +1,6 @@
 import gdal, ogr, os, osr, time
 import numpy as np
-import modules.array2raster as a2r
+import CM_intern.common_modules.array2raster as a2r
 '''
 This code considers the input raster with resolution of 1km2 and outputs a raster with 100m2 resolution. in case, different configuration in term of resolution
 is required, the corresponding factors should be set again (x_res_factor and y_res_factor)

@@ -1,53 +1,26 @@
 # --------------------------------------- Header -------------------------------------------------
-from qgis.core import *
-import sip
+
 import os
 import sys
-import numpy as np
+
 import zipfile
 from Cython.Compiler.Nodes import PassStatNode
-linux = "linux" in sys.platform
+
 
 from contextlib import  closing
 
 
-
-
-
-
-if linux:
-    sys.path.append("/usr/share/qgis/python/plugins")
-
-API_NAMES = ["QDate", "QDateTime", "QString", "QTextStream", "QTime", "QUrl", "QVariant"]
-API_VERSION = 2
-
-for name in API_NAMES:
-    sip.setapi(name, API_VERSION)
-"""
-app = QgsApplication([], True)
-
-if linux:
-    app.setPrefixPath("/usr/share/qgis/")
-else:
-    app.setPrefixPath("C:/OSGeo4W64/apps/qgis", True)
-app.initQgis()
-"""
-
-from qgis.analysis import *
 import sys, os, shutil, time
 
-from PyQt4.QtCore import QVariant
-#from subprocess import call, CalledProcessError, check_output, PIPE, Popen
-
-
-sys.path.append('/usr/share/qgis/python/plugins/')
 
 
 
 # ------------------------------------------------------------------------------------------------------------
 # --------------------------------------- Additional imports -------------------------------------------------
 
-import modules.reprojection as rp
+sys.path.insert(0, "../../")
+
+import CM_intern.common_modules.reprojection as rp
 """
 
 import EnergyDensity
@@ -56,7 +29,7 @@ from EnergyDensity.extent import Layer_Extent
 
 """
 
-#Defines whether or not a new layer of Municipality borders is used 
+# Defines whether or not a new layer of Municipality borders is used 
 #
 
 NEW_commun_lyr_data = False
@@ -64,20 +37,6 @@ NEW_commun_lyr_data = False
 #
 ##################
 
-if linux:
-    pass
-    #commun_lyr_path = "/home/simulant/ag_lukas/personen/Mostafa/openstreetmap/data/Communal3035.shp"
-    #commun_lyr_path = "./openstreetmap/Communal3035.shp"
-    #building_lyr_base_path = "/home/simulant/ag_lukas/personen/Andreas/Openstreetmapdata"
-    #building_lyr_path2 = "./openstreetmap/extract"
-    
-    #extent_lyr_path = "./openstreetmap/extent.shp"
-
-else:
-    pass
-    #commun_lyr_path = "Z:/personen/Mostafa/openstreetmap/data/Communal3035.shp"
-    #building_lyr_path = "Z:/personen/Mostafa/openstreetmap/data/Buildings_3035.shp"
-    #extent_lyr_path = "Z:/personen/Mostafa/openstreetmap/data/extent.shp"
 
 """
 
@@ -196,7 +155,7 @@ class ExtractAndTransformOSMData():
         
         
         self._country_file_list = []
-        for (dirpath,dirnames,filenames) in os.walk(self.input_data_path):
+        for (dirpath, dirnames, filenames) in os.walk(self.input_data_path):
             for fn in filenames:
                 if fn.endswith(".shp.zip"):
                     self._country_file_list.append(fn)
@@ -207,18 +166,25 @@ class ExtractAndTransformOSMData():
         self.OSM_input_feat_dict["landu"] = ["LandUseData.npz", [7203,7204,7209,7212]]
         self.OSM_input_feat_dict["build"] = ["BuildingData.npz", []]
         
-        self.buildings_input_feat = 'bb'
+        #self.buildings_input_feat = 'bb'
         
     
         
     
     
     def extract_and_reproject_files(self):
-        
+        counter = 0
         for file_ in sorted(self._country_file_list):
-            print(file_)
+            counter +=1
+            print("\n####################")
+            print("FileNr. %i :   %s \n" %(counter, file_))
+
             file_ = "%s/%s" %(self.input_data_path, file_)
-            self._check_files2extractAreproject(file_, self.OSM_input_feat_dict)
+            NEW_SHAPE_FILE = self._check_files2extractAreproject(file_, self.OSM_input_feat_dict)
+            
+            if NEW_SHAPE_FILE == True:
+                pass
+                #break
             
     
     def _check_files2extractAreproject(self, file_, OSM_input_feat_dict):
@@ -247,12 +213,16 @@ class ExtractAndTransformOSMData():
             return False
         
         mod_time_in = os.stat(file_).st_mtime
-        #unzip Files
+        print("    OSM - Data Download: %s" 
+                  % time.strftime("%a, %d %b %Y %H:%M:%S", 
+                                  time.localtime(mod_time_in)))
+        # unzip Files
+        building_lyr_file_out2_LIST = []
         with closing(zipfile.ZipFile(file_)) as zfile:
+            # check if newer file available
             for info in zfile.infolist():
                 for lyr_zip_name in OSM_input_feat_dict:
                     if lyr_zip_name in info.filename:
-                        print_outout = ""
                         
                         building_lyr_file_out = ("%s/%s" 
                                                 % (building_lyr_path_out2
@@ -260,73 +230,88 @@ class ExtractAndTransformOSMData():
                         building_lyr_file_out3035 = (building_lyr_file_out[:-4] 
                                                      + "_3035" + building_lyr_file_out[-4:])
                         
-                            
-                        
-                        print_outout += "Extract: %s to \n     %s" %(info.filename, building_lyr_file_out)
-                        
-                        
-                        
                         process_file = True
+                        if building_lyr_file_out.endswith(".cpg") == True: # Codex
+                            continue
                         if os.path.exists(building_lyr_file_out3035):
                             mod_time_out = os.stat(building_lyr_file_out3035).st_mtime
-                        elif os.path.exists(building_lyr_file_out):
-                            mod_time_out = os.stat(building_lyr_file_out).st_mtime
                         else: 
                             mod_time_out = 0
                         
-                        if mod_time_out > 0:
-                            print_outout += "\n" + "  File exists"
-                            if mod_time_out > mod_time_in:
-                                process_file = False
-                            else:
-                                print_outout += "\n" + "   Newer Data available"
-                        else:
-                            print_outout += "\n" + "  File doesn't exists"
+                        if mod_time_out < mod_time_in:
+                            print("    Converted File:      %s" 
+                                    % time.strftime("%a, %d %b %Y %H:%M:%S", 
+                                                    time.localtime(mod_time_out)))
+                            process_any_file = True
+                            break
+                    
+                    if process_any_file == True:
+                        break
+                            
                         
-                        if process_file == True:
+            # Extract 
+            if process_any_file == False :
+                print("%s : Most recent data extracted" %input_base_name)
+            else:             
+                for info in zfile.infolist():
+                    for lyr_zip_name in OSM_input_feat_dict:
+                        if lyr_zip_name in info.filename:
+                            
+                            building_lyr_file_out = ("%s/%s" 
+                                                    % (building_lyr_path_out2
+                                                    , info.filename))
+                            
+                            if building_lyr_file_out.endswith("shp"): 
+                                building_lyr_file_out2 = building_lyr_file_out
+                                building_lyr_file_out2_LIST.append(building_lyr_file_out2)
+                                print_outout = "  Extract: %s to \n     %s" %(info.filename, building_lyr_file_out)
+                            
+                                if mod_time_out > 0:
+                                    print_outout += "\n" + "    File exists, but newer data are available"
+                                else:
+                                    print_outout += "\n" + "    File doesn't exists"
+                                print(print_outout)
+                            
+                            # Exctract
                             zfile.extract(info, building_lyr_path_out2)
-                            if not building_lyr_file_out.endswith("cpg"):
-                                process_any_file = True
-                            
-                        if building_lyr_file_out.endswith("shp"): 
-                            building_lyr_file_out2 = building_lyr_file_out
-                            
-                            print(print_outout)
+
+
                                 
         try:
             zfile.close()
         except:
             pass
         NEW_SHAPE_FILE = False
-        building_lyr_file_out3 = building_lyr_file_out2.replace(".shp", "_3035.shp")    
         
         
-        if os.path.exists(building_lyr_file_out3):
-            mod_time_3035 = os.stat(building_lyr_file_out3).st_mtime
-        else: mod_time_3035 = 0   
-        if os.path.exists(building_lyr_file_out3[:-3] + "cpg"):
-            mod_time_in = os.stat(building_lyr_file_out3[:-3] + "cpg").st_mtime
-        #Compare with modification time of shp.zip file   
-        if process_any_file == True or mod_time_3035 < mod_time_in:
-            # Transformation of Layer CRS
-            rp.reprojection(building_lyr_file_out2, building_lyr_file_out3, self.buildings_input_feat)
-            NEW_SHAPE_FILE = True
-            print("New reprojected files: %s" % building_lyr_file_out3)
-        
-        for (dirpath,dirnames,filenames) in os.walk(os.path.dirname(building_lyr_file_out3)):
-            for fn in filenames:
-                if "_3035." in fn:
-                    pass
-                else:
-                    full_fn = "%s/%s" %(dirpath, fn)
-                    full_fn_3035 = full_fn[:-4] + "_3035" + full_fn[-4:]
-                    if os.path.exists(full_fn_3035):
-                        try:
-                            os.remove(full_fn)
-                        except:
-                            pass
-                    
-        return building_lyr_file_out3, NEW_SHAPE_FILE
+        if len(building_lyr_file_out2_LIST) > 0:
+            for building_lyr_file_out2 in building_lyr_file_out2_LIST:
+                building_lyr_file_out3 = building_lyr_file_out2.replace(".shp", "_3035.shp")    
+                print("         Start reprojection of: %s" % building_lyr_file_out3)
+                # Transformation of Layer CRS
+                st = time.time()
+                rp.reprojectShp2Shp(building_lyr_file_out2, building_lyr_file_out3)
+                print("GDAL: %4.3f sec" %(time.time() - st))
+                st = time.time()
+                rp.reproject(building_lyr_file_out2, building_lyr_file_out3)
+                print("Qgis: %4.3f sec" %(time.time() - st))
+                NEW_SHAPE_FILE = True
+                print("         New reprojected files: %s" % building_lyr_file_out3)
+            """
+            for (dirpath, dirnames,filenames) in os.walk(os.path.dirname(building_lyr_file_out3)):
+                for fn in filenames:
+                    if "_3035." in fn:
+                        pass
+                    else:
+                        full_fn = "%s/%s" %(dirpath, fn)
+                        full_fn_3035 = full_fn[:-4] + "_3035" + full_fn[-4:]
+                        if os.path.exists(full_fn_3035):
+                            try:
+                                os.remove(full_fn)
+                            except:
+                                pass
+            """
+            return NEW_SHAPE_FILE
         
         
         

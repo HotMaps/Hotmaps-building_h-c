@@ -1,8 +1,8 @@
-import gdal, os, math
+import gdal, os
 import numpy as np
-import time
 
-import modules.array2raster as a2r # array2raster
+
+import CM_intern.common_modules.array2raster as a2r
 '''
 This code is performed for raster layers which their extent is greater than population raster. 
 also their resolution should be smaller or equal to the population raster and also be a multiplicand of "10".
