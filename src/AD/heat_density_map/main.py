@@ -12,4 +12,8 @@ def HDMAP(data_warehouse):
 
 
 if __name__ == "__main__":
-    HDMAP()
+    # path to the src
+    data_warehouse = os.path.dirname(os.path.dirname(__file__)) + \
+                                                    os.sep + 'data_warehouse'
+    path2hdm = HDMAP(data_warehouse)
+    print(path2hdm)
