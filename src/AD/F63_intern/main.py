@@ -21,9 +21,9 @@ def ad_f63(spec_demand_csv, building_strd_info_csv, inShapefile):
         spec_demand_csv = data_warehouse + os.sep + 'useful_demand.csv'
         UsefulDemandRasterPath = data_warehouse
         UsefulDemandRaster = [UsefulDemandRasterPath +
-                              '/F63_ResidentialUsefulDemand.tif',
+                              '/ResidentialUsefulDemand.tif',
                               UsefulDemandRasterPath +
-                              '/F63_ServiceUsefulDemand.tif']
+                              '/ServiceUsefulDemand.tif']
         process0 = False
     else:
         UsefulDemandRasterPath = output_dir
