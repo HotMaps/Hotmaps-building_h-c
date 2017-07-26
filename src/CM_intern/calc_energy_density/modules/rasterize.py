@@ -1,6 +1,6 @@
 import gdal, ogr, os, time
 import numpy as np
-import modules.array2raster  as a2r #array2raster
+import CM_intern.common_modules.array2raster as a2r #array2raster
 
 def rasterize(inRasterPath, inVectorPath, fieldName, dataType
               , outRasterPath, noDataValue, saveAsRaster=True

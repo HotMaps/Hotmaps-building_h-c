@@ -1,9 +1,10 @@
 import numpy as np
 import shutil
 import sys, os, time, gdal, ogr
+sys.path.insert(0, "../..")
 
 import  modules.Subfunctions as SF
-import  modules.array2raster as a2r
+
 import  modules.changeRastExt as cre   # import RastExtMod
 import  modules.higherRes as hr        # import HighRes
 import  modules.query as qu
@@ -11,6 +12,7 @@ import  modules.rasterize as ra
 
 #from zonal_statistics import ZonalStat
 
+import CM_intern.common_modules.array2raster as a2r
 import modules.cython_files.SumOfHighRes_64 as SOHR
 """
 try:

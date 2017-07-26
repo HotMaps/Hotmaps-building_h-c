@@ -1,6 +1,6 @@
 import gdal, ogr
 import os
-import numpy as np
+
 '''
 Created on Apr 23, 2017
 

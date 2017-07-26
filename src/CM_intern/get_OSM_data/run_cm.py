@@ -12,10 +12,7 @@ from leach_osm_geofabrik import LeachOSMFilesFromGeofabrik
 
 
 
-if __name__ == "__main__":
-    
-    print(sys.version_info)
-    data_path = "/home/simulant/ag_lukas/personen/Andreas/Openstreetmapdata"
+def main(data_path):
     
     # Prepare
     LOSMF = LeachOSMFilesFromGeofabrik(data_path)
@@ -24,10 +21,22 @@ if __name__ == "__main__":
     # LOSMF.request_urls(check_size=False)
 
     # each online file size is a request, the total daily number of request is limited to about 40
-    LOSMF.check_size_online_file(range(20))
+    try:
+        LOSMF.check_size_online_file(range(1))
+    except Exception as e:
+        print(e)
     LOSMF.print_URLcollectionData()
     IndexListOfDownloads = LOSMF.determine_most_urgent_downloads(20)
     # each download is a request, the total daily number of request is limited to about 40
     #LOSMF.download_OSM_files(IndexListOfDownloads[:])
+    
+    
+
+if __name__ == "__main__":
+    
+    print(sys.version_info)
+    data_path = "/home/simulant/ag_lukas/personen/Andreas/Openstreetmapdata"
+    main(data_path)
+    
     print("Done!")
 

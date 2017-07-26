@@ -7,18 +7,23 @@ Created on 29.04.2014
 import requests 
  
 
-import urllib2
+
 import urllib
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import time
-from numpy import ceil, floor
-import shutil
+
+
 import os
 import random
 import base64
 import numpy as np
 import pickle
 import datetime
+import sys
+if sys.version_info[0] == 2:
+    import urllib2 as urllib2
+else:
+    import urllib.request as urllib2
 
 TIME_TO_WAIT = 0
 username="YYYY"
@@ -27,19 +32,16 @@ password = "XXXX"
 BASE_LINK = "http://download.geofabrik.de/"
 main_link = "http://download.geofabrik.de/europe.html"
 
-RESULTS_LOCAL_PATH = "C:/workspace-eclipse/ee-lab/src/other_stuff/TECHING_TECHNIKUM/openstreetmapdata/"
-RESULTS_LOCAL_PATH = "T:/personen/Andreas/Openstreetmapdata/"
-
 
 # check geofabrik for urls/new urls
 request_urls = False
 # geofabrik allows only 40 request per day
-MaxNumDownloads = 10
+MaxNumDownloads = 30
 
 # check online size of data file (counts as one request!)
 #check_download_size = True
 #number of checks for online size -> if there is a very recent size check then not needed
-MaxNumSizeCheck = 2
+MaxNumSizeCheck = 20
 
 # if true perform actual download
 TEST_SYSTEM = False
@@ -115,6 +117,10 @@ def scrapper(string, country, wait_factor=0
                 size_ = -1
             links_and_names.append([l, add_country + target_file_name, float(size_)])
             
+        try:
+            os.remove("%s%s" % ("", "test.html"))
+        except:
+            pass
         return (links_and_names)
     """
     except:
@@ -126,7 +132,10 @@ def scrapper(string, country, wait_factor=0
 def get_site_info(url_):
     site = urllib2.urlopen(url_)
     meta = site.info()
-    size_ = meta.getheaders("Content-Length")[0]
+    try:
+        size_ = meta.getheaders("Content-Length")[0]
+    except:
+        size_ = meta.get("Content-Length")
     return size_, meta
     
 
@@ -349,9 +358,13 @@ class LeachOSMFilesFromGeofabrik():
         return
     
     def print_URLcollectionData(self):
+        
+        counter = 0
         for (url_, fn, mod_time_local, local_size, size_online_last_download
                 , date_size_check_online, size_online_latest) in self.FINAL_DOWNLOAD_LINKS:
+            counter += 1
             print("\n##################") 
+            print("Nr. %i" %counter)
             self._print_URLcollectionData(url_, fn, mod_time_local, local_size, size_online_last_download
                 , date_size_check_online, size_online_latest)
         return
@@ -378,6 +391,8 @@ class LeachOSMFilesFromGeofabrik():
         """
 
         for i in INDEX_LIST:
+            if i >= len(self.FINAL_DOWNLOAD_LINKS):
+                continue
             (url_, fn, mod_time_local, local_size, size_online_last_download
                 , date_size_check_online, size_online_latest) = self.FINAL_DOWNLOAD_LINKS[i]
             
