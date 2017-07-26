@@ -17,7 +17,7 @@ from scipy.ndimage import measurements
 path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 if path not in sys.path:
     sys.path.append(path)
-from CM.CM_TUW20.indexing import calc_index
+import CM.CM_TUW20.run_cm as CM20
 from AD.heat_density_map.main import HDMAP
 '''
 The input for this calculation module is "heat density map" with [GWh/km2]
@@ -129,7 +129,7 @@ def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
     b11 = cutRastDatasource.GetRasterBand(1)
     arr1 = b11.ReadAsArray().astype(float)
     (dimX0, dimY0) = arr1.shape
-    (lowIndexX, upIndexX, lowIndexY, upIndexY) = calc_index(minx, maxy,
+    (lowIndexX, upIndexX, lowIndexY, upIndexY) = CM20.main(minx, maxy,
                                                             dimX0, dimY0,
                                                             shp_minX, shp_maxX,
                                                             shp_minY, shp_maxY)
@@ -148,7 +148,7 @@ def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
         # Get boundaries
         fminx, fmaxx, fminy, fmaxy = geom.GetEnvelope()
         # define exact index that encompasses the feature.
-        (lowIndexX, upIndexX, lowIndexY, upIndexY) = calc_index(minx, maxy,
+        (lowIndexX, upIndexX, lowIndexY, upIndexY) = CM20.main(minx, maxy,
                                                                 dimX, dimY,
                                                                 fminx, fmaxx,
                                                                 fminy, fmaxy)
