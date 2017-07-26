@@ -5,15 +5,19 @@ Created on July 11 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
+import sys
 import time
 from osgeo import gdal
 from osgeo import ogr
-from osgeo import osr
 import numpy as np
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
 from scipy.ndimage import measurements
+path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
+from CM.CM_TUW20.indexing import calc_index
 from AD.heat_density_map.main import HDMAP
 '''
 The input for this calculation module is "heat density map" with [GWh/km2]
@@ -23,34 +27,6 @@ pixel_threshold in [GWh/km2]
 DH_threshold in [GWh/annum]
 '''
 verbose = False
-
-
-def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
-                 dataType, array, noDataValue):
-    '''This function rasterizes the input numpy array '''
-    # conversion of data types from numpy to gdal
-    dict_varTyp = {"int8":      gdal.GDT_Byte,
-                   "int16":     gdal.GDT_Int16,
-                   "int32":     gdal.GDT_Int32,
-                   "uint16":    gdal.GDT_UInt16,
-                   "uint32":    gdal.GDT_UInt32,
-                   "float32":   gdal.GDT_Float32,
-                   "float64":   gdal.GDT_Float64}
-    cols = array.shape[1]
-    rows = array.shape[0]
-    originX = rasterOrigin[0]
-    originY = rasterOrigin[1]
-    driver = gdal.GetDriverByName('GTiff')
-    outRaster = driver.Create(outRasterPath, cols, rows, 1,
-                              dict_varTyp[dataType], ['compress=LZW'])
-    outRaster.SetGeoTransform((originX, pixelWidth, 0,
-                               originY, 0, pixelHeight))
-    outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(3035)
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outRaster.GetRasterBand(1).SetNoDataValue(noDataValue)
-    outRaster.GetRasterBand(1).WriteArray(array)
-    outRaster.FlushCache()
 
 
 def DHRegions(DH, DH_threshold):
@@ -141,37 +117,7 @@ def DHPotential(DH_Regions, HD):
     return DH_Potential
 
 
-def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_):
-    fminx = fminy = 10**10
-    fmaxx = fmaxy = 0
-    # Get boundaries
-    fminx = min(fminx_, fminx)
-    fminy = min(fminy_, fminy)
-    fmaxx = max(fmaxx_, fmaxx)
-    fmaxy = max(fmaxy_, fmaxy)
-    # define exact index that encompasses the feature.
-    lowIndexY = int((fminx-minx)/100.0)
-    lowIndexX = int((maxy-fmaxy)/100.0)
-    upIndexY = lowIndexY + int((fmaxx-fminx)/100.0)
-    upIndexX = lowIndexX + int((fmaxy-fminy)/100.0)
-    while (minx + upIndexY*100) < fmaxx:
-        upIndexY = upIndexY + 1
-    while (maxy - upIndexX*100) > fminy:
-        upIndexX = upIndexX + 1
-    # check if input shapefile exceed the boundaries of input raster file.
-    if lowIndexY < 0:
-        lowIndexY = 0
-    if lowIndexX < 0:
-        lowIndexX = 0
-    if upIndexY > dimY:
-        upIndexY = dimY
-    if upIndexX > dimX:
-        upIndexX = dimX
-    return (lowIndexX, upIndexX, lowIndexY, upIndexY)
-
-
-def DHReg(heat_density_map, strd_vector_path, pix_threshold,
-            DH_threshold):
+def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
     inDataSource = inDriver.Open(strd_vector_path, 0)
     inLayer = inDataSource.GetLayer()
@@ -218,12 +164,10 @@ def DHReg(heat_density_map, strd_vector_path, pix_threshold,
 
 if __name__ == "__main__":
     start = time.time()
-    os.chdir('../..')
-    data_warehouse = os.getcwd() + os.sep + 'AD/data_warehouse'
+    data_warehouse = path + os.sep + 'AD/data_warehouse'
     heat_density_map = HDMAP(data_warehouse)
     region = data_warehouse + os.sep + 'AT.shp'
-    os.chdir('..')
-    output_dir = os.getcwd() + os.sep + 'Outputs'
+    output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     outRasterPath = output_dir + os.sep + 'Pot_AT_TH30.tif'
@@ -231,6 +175,6 @@ if __name__ == "__main__":
     pix_threshold = 10
     # DH_threshold [GWh/a]
     DH_threshold = 30
-    DHReg(heat_density_map, region, pix_threshold, DH_threshold)
+    output = DHReg(heat_density_map, region, pix_threshold, DH_threshold)
     elapsed = time.time() - start
-    print(elapsed)
+    print("%0.3f seconds" % elapsed)
