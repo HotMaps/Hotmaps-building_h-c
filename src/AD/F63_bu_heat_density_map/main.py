@@ -18,20 +18,23 @@ def ad_f63(spec_demand_csv, building_strd_info_csv, inShapefile):
     if spec_demand_csv == '':
         # average specific demand in EU countries in residential and service
         # sector
-        spec_demand_csv = data_warehouse + os.sep + 'useful_demand_AT.csv'
+        spec_demand_csv = data_warehouse + os.sep + 'useful_demand.csv'
         UsefulDemandRasterPath = data_warehouse
         UsefulDemandRaster = [UsefulDemandRasterPath +
-                              '/ResidentialUsefulDemand_AT.tif',
+                              '/F63_ResidentialUsefulDemand_AT.tif',
                               UsefulDemandRasterPath +
-                              '/ServiceUsefulDemand_AT.tif']
+                              '/F63_ServiceUsefulDemand_AT.tif']
         process0 = False
     else:
         UsefulDemandRasterPath = output_dir
-        UsefulDemandRaster = [output_dir + '/F63_ResidentialUsefulDemand_AT.tif',
+        UsefulDemandRaster = [output_dir + '/F63_ResidentialUsefulDemand_'
+                                           'AT.tif',
                               output_dir + '/F63_ServiceUsefulDemand_AT.tif']
-    outShapefile = output_dir + os.sep + 'F63_updated_building_footprint_AT.shp'
+    outShapefile = output_dir + os.sep + 'F63_updated_building_footprint_' \
+                                         'AT.shp'
     if building_strd_info_csv == '':
-        building_strd_info_csv = output_dir + os.sep + 'F63_building_strd_info.csv'
+        building_strd_info_csv = output_dir + os.sep + 'F63_building_strd_' \
+                                                       'info.csv'
     else:
         process1 = False
     if inShapefile == '':

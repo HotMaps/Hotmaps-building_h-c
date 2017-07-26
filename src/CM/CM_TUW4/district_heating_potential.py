@@ -130,9 +130,9 @@ def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
     arr1 = b11.ReadAsArray().astype(float)
     (dimX0, dimY0) = arr1.shape
     (lowIndexX, upIndexX, lowIndexY, upIndexY) = CM20.main(minx, maxy,
-                                                            dimX0, dimY0,
-                                                            shp_minX, shp_maxX,
-                                                            shp_minY, shp_maxY)
+                                                           dimX0, dimY0,
+                                                           shp_minX, shp_maxX,
+                                                           shp_minY, shp_maxY)
     minx = minx + 100 * lowIndexY
     maxy = maxy - 100 * lowIndexX
     rasterOrigin = (minx, maxy)

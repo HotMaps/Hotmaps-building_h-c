@@ -1,41 +1,17 @@
+import os
+import sys
+import time
 from osgeo import gdal
 from osgeo import gdalnumeric
 from osgeo import ogr
-from osgeo import osr
 from PIL import Image, ImageDraw
-import os
 import numpy as np
 import pandas as pd
-import time
+path = os.path.dirname(os.path.dirname(__file__))
+if path not in sys.path:
+    sys.path.append(path)
 from CM_intern import csv2shp
-
-
-def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
-                 dataType, array, noDataValue):
-    '''This function rasterizes the input numpy array '''
-    # conversion of data types from numpy to gdal
-    dict_varTyp = {"int8":      gdal.GDT_Byte,
-                   "int16":     gdal.GDT_Int16,
-                   "int32":     gdal.GDT_Int32,
-                   "uint16":    gdal.GDT_UInt16,
-                   "uint32":    gdal.GDT_UInt32,
-                   "float32":   gdal.GDT_Float32,
-                   "float64":   gdal.GDT_Float64}
-    cols = array.shape[1]
-    rows = array.shape[0]
-    originX = rasterOrigin[0]
-    originY = rasterOrigin[1]
-    driver = gdal.GetDriverByName('GTiff')
-    outRaster = driver.Create(outRasterPath, cols, rows, 1,
-                              dict_varTyp[dataType], ['compress=LZW'])
-    outRaster.SetGeoTransform((originX, pixelWidth, 0,
-                               originY, 0, pixelHeight))
-    outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(3035)
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outRaster.GetRasterBand(1).SetNoDataValue(noDataValue)
-    outRaster.GetRasterBand(1).WriteArray(array)
-    outRaster.FlushCache()
+import CM.CM_TUW19.run_cm as CM19
 
 
 def saveCSVorSHP(feat, demand, outCSVDir, save2csv=None, save2shp=None,
@@ -52,7 +28,7 @@ def saveCSVorSHP(feat, demand, outCSVDir, save2csv=None, save2shp=None,
 
 def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
                 save2csv=None, save2raster=None, save2shp=None,
-                unit_multiplier=None):
+                unit_multiplier=None, return_array=False):
     '''
     Clips a raster (given as either a gdal.Dataset or as a numpy.array
     instance) to a polygon layer provided by a Shapefile (or other vector
@@ -99,9 +75,9 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
         pixel = int((x - ulX) / xDist)
         line = int((ulY - y) / xDist)
         return (pixel, line)
-    
+
     # get shapefile name
-    shpName = features_path.replace('\\','/')
+    shpName = features_path.replace('\\', '/')
     shpName = shpName.split('/')[-1][0:-4]
     # Create a data array for the output csv
     if save2csv:
@@ -121,7 +97,6 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
         lyr = features.GetLayer(temp[1])
     else:
         lyr = features.GetLayer()
-    
     for fid in range(lyr.GetFeatureCount()):
         '''
         if fid > 40:
@@ -245,22 +220,22 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
         if save2raster:
             outRasterPath = outRasterDir + os.sep + shpName + '_feature_' + \
                             str(fid) + '.tif'
-            array2raster(outRasterPath, (gt3[0], gt3[3]), gt3[1], gt3[5],
-                         str(clip_complete.dtype), clip_complete, 0)
+            CM19.main(outRasterPath, gt3, str(clip_complete.dtype),
+                      clip_complete, 0)
         if save2csv or save2shp:
             outCSVDir = outRasterDir
             saveCSVorSHP(feat, demand, outCSVDir, save2csv=None, save2shp=None,
                          inCSV=None, outShpPath=None)
-
+        if return_array:
+            return clip_complete, gt3
 
 if __name__ == '__main__':
     start = time.time()
-    os.chdir('..')
-    base_folder = os.getcwd()
-    data_warehouse = base_folder + os.sep + 'AD/data_warehouse'
+    # path to the src
+    data_warehouse = path + os.sep + 'AD/data_warehouse'
     features_path = data_warehouse + os.sep + "AT.shp"
     raster = data_warehouse + os.sep + "top_down_heat_density_map_v2_AT.tif"
-    output_dir = base_folder + os.sep + 'Outputs'
+    output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     nodata = 0
