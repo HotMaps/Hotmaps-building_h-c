@@ -1,5 +1,8 @@
-import gdal, ogr, os, time
+import os
+import time
 import numpy as np
+from osgeo import gdal
+from osgeo import ogr
 from array2raster import array2raster
 
 def rasterize(inRasterPath, inVectorPath, fieldName, dataType, outRasterPath, noDataValue):

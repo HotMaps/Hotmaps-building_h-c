@@ -5,10 +5,10 @@ Created on July 6 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import time
-from src.CM.CM_TUW9.bottom_up_hdm import zonStat_selectedArea as zs
-from src.CM.CM_TUW9.specific_demand import specific_demand
-from src.CM.CM_TUW9.shp2csv import shp2csv
-from src.CM.CM_TUW9.update_building_layer import update_building_lyr as update
+from CM.CM_TUW9.bottom_up_hdm import zonStat_selectedArea as zs
+from CM.CM_TUW9.specific_demand import specific_demand
+from CM.CM_TUW9.shp2csv import shp2csv
+from CM.CM_TUW9.update_building_layer import update_building_lyr as update
 ''' This module calls other calculation modules for the BUHDM'''
 
 

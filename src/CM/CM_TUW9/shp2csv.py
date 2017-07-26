@@ -7,9 +7,9 @@ Created on July 6 2017
 import os
 import pandas as pd
 import numpy as np
-import gdal
-import ogr
-import osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 import time
 
 '''
@@ -44,7 +44,21 @@ def indexing(UsefulDemandRaster, X, Y):
     yIndex = np.floor((y0-Y)/100.0).astype(int)
     band1 = UsefulDemandDataSource.GetRasterBand(1)
     arrUsefulDemand = band1.ReadAsArray()
-    spec_demand = arrUsefulDemand[yIndex, xIndex]
+    # find the indices which are out of range of the raster
+    h, w = arrUsefulDemand.shape
+    l = yIndex.size
+    # define specific demand array with the same length as l and fill it with
+    # NaN
+    spec_demand = np.empty(l)
+    outRangeY = np.concatenate((np.argwhere(yIndex < 0),
+                                np.argwhere(yIndex >= h)), axis=0)
+    outRangeX = np.concatenate((np.argwhere(xIndex < 0),
+                                np.argwhere(xIndex >= w)), axis=0)
+    outRange = np.union1d(outRangeY, outRangeX)
+    IndexInRange = np.setdiff1d(np.arange(l), outRange)
+    # fill elements which are in range
+    spec_demand[IndexInRange] = arrUsefulDemand[yIndex[IndexInRange],
+                                                xIndex[IndexInRange]]
     UsefulDemandDataSource = None
     return spec_demand
 
@@ -122,14 +136,17 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
         however, recalculation of it does not cause deviation since basically
         it is should be similar to the input
         '''
-        fieldvalues[fid, FootprintIndex] = geom.GetArea()
+        if geom.GetGeometryName() == 'POINT':
+            fieldvalues[fid, FootprintIndex] = 0
+        else:
+            fieldvalues[fid, FootprintIndex] = geom.GetArea()
         inFeature = inLayer.GetNextFeature()
     if 'GFA' not in fieldList[newFieldList]:
         fieldvalues[:, GFAIndex] = fieldvalues[:, FootprintIndex] * \
             fieldvalues[:, NrFloorIndex]
     else:
         # Assign a value to GFA for the attributes that have no entries
-        k = np.argwhere(np.isnan(fieldvalues[:, GFAIndex]) or
+        k = np.argwhere(np.isnan(fieldvalues[:, GFAIndex]) +
                         fieldvalues[:, GFAIndex] == 0)
         noGFA = k[::2]
         fieldvalues[noGFA, GFAIndex] = fieldvalues[noGFA, FootprintIndex] * \

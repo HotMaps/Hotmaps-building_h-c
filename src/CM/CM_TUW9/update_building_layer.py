@@ -6,8 +6,8 @@ Created on July 6 2017
 """
 import os
 import time
-import ogr
-import osr
+from osgeo import ogr
+from osgeo import osr
 import pandas as pd
 '''
 This module creates a shapefile with attributes which exist in the input
@@ -38,8 +38,12 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
         outDriver.DeleteDataSource(outShapefile)
     # Create the output shapefile
     outDataSource = outDriver.CreateDataSource(outShapefile)
+    geom_typ = inLayer.GetGeomType()
+    geom_typ_dict = {1: ogr.wkbPoint, 3: ogr.wkbPolygon}
+    if geom_typ not in list(geom_typ_dict.keys()):
+        raise Exception("Geometry type of the input layer is not supported!")
     outLayer = outDataSource.CreateLayer("Building_lyr_updated", srs,
-                                         geom_type=ogr.wkbPolygon)
+                                         geom_type=geom_typ_dict[geom_typ])
     for i, item in enumerate(csv_cols):
         if i > 0:
             if col_dtype[i] == object:

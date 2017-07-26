@@ -13,21 +13,21 @@ def ad_f63(spec_demand_csv, building_strd_info_csv, inShapefile):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     data_warehouse = os.getcwd() + os.sep + 'AD/data_warehouse'
-    eu_shp = data_warehouse + os.sep + 'EU28_plus_CH.shp'
+    eu_shp = data_warehouse + os.sep + 'AT_NUTS3.shp'
     if spec_demand_csv == '':
         # average specific demand in EU countries in residential and service sector
-        spec_demand_csv = data_warehouse + os.sep + 'useful_demand.csv'
+        spec_demand_csv = data_warehouse + os.sep + 'useful_demand_AT.csv'
         UsefulDemandRasterPath = data_warehouse
         UsefulDemandRaster = [UsefulDemandRasterPath +
-                              '/ResidentialUsefulDemand.tif',
+                              '/ResidentialUsefulDemand_AT.tif',
                               UsefulDemandRasterPath +
-                              '/ServiceUsefulDemand.tif']
+                              '/ServiceUsefulDemand_AT.tif']
         process0 = False
     else:
         UsefulDemandRasterPath = output_dir
-        UsefulDemandRaster = [output_dir + '/ResidentialUsefulDemand.tif',
-                              output_dir + '/ServiceUsefulDemand.tif']
-    outShapefile = output_dir + os.sep + 'updated_building_footprint.shp'
+        UsefulDemandRaster = [output_dir + '/ResidentialUsefulDemand_AT.tif',
+                              output_dir + '/ServiceUsefulDemand_AT.tif']
+    outShapefile = output_dir + os.sep + 'updated_building_footprint_AT.shp'
     if building_strd_info_csv == '':
         building_strd_info_csv = output_dir + os.sep + 'building_strd_info.csv'
     else:
@@ -35,8 +35,7 @@ def ad_f63(spec_demand_csv, building_strd_info_csv, inShapefile):
     if inShapefile == '':
         # here, OSM cut for the selected region should be attributed to
         # the inShapefile
-        inShapefile = data_warehouse + os.sep + 'gis.osm_buildings_a_free_1' \
-                                                '_3035.shp'
+        inShapefile = data_warehouse + os.sep + 'Sample_OSM_Building_Lyr.shp'
         process2 = False
     if inShapefile == '' and building_strd_info_csv != '':
         process1 = False

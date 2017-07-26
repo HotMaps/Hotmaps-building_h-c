@@ -1,6 +1,8 @@
 import os
-from src.AD.F13_district_heating_potential.main import ad_f13
-from src.CM.CM_TUW4 import district_heating_potential as DHP
+import sys
+sys.path.insert(0, '../..')
+from AD.F13_district_heating_potential.main import ad_f13
+from CM.CM_TUW4 import district_heating_potential as DHP
 
 
 def execute(outRasterPath):
@@ -12,9 +14,10 @@ def execute(outRasterPath):
     # Shapefile of NUTS0, 1, 2, 3 should be available in data warehouse; User
     # should also be able to calculate potential for the selected area: shall
     # be considered in AD
-    DHP.NutsCut(heat_density_map, strd_vector, pix_threshold,
-                DH_threshold, outRasterPath)
-
+    DH_Regions, arr1, origin = DHP.DHReg(heat_density_map, strd_vector,
+                                         pix_threshold, DH_threshold)
+    result = DHP.DHPotential(DH_Regions, arr1)
+    DHP.array2raster(outRasterPath, origin, 100, -100, "float32", result, 0)
 
 if __name__ == "__main__":
     os.chdir('../..')

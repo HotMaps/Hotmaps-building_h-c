@@ -1,8 +1,8 @@
 import time
 import os
-import gdal
-import ogr
-import osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 from fishnet import main
 import numpy as np
 

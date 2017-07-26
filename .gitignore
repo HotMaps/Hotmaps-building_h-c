@@ -33,7 +33,6 @@ src/AD/final_data/
 
 \.settings/
 
-src/AD/data_warehouse/
 
 src/CM_intern/calc_energy_density/HOTMAPS___FirstMess/openstreetmap/
 
@@ -48,3 +47,11 @@ src/CM_intern/calc_energy_density/HOTMAPS___FirstMess/ED3/DATA/
 src/CM_intern/get_and_convert_OSM_data/test\.html
 
 src/CM_intern/get_and_convert_OSM_data/links\.txt
+
+src/AD/data_warehouse_intern/
+
+src/CM_intern/Frankfurt/
+
+src/CM_intern/Test/
+
+src/CM_intern/Old/

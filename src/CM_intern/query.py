@@ -1,4 +1,5 @@
-from osgeo import ogr, osr
+from osgeo import ogr
+from osgeo import osr
 import os
 CREATE_MEM_LAYER = False
 SET_SPATIAL_FILTE = True
