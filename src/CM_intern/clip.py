@@ -215,7 +215,7 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
             dem_sum = np.sum(clip_complete) * unit_multiplier
             feat.append(nuts_region)
             demand.append(dem_sum)
-            print('Total demand/potential in nuts region %s is: %0.1f GWh'
+            print('Total demand/potential in region %s is: %0.1f GWh'
                   % (nuts_region, dem_sum))
         if save2raster:
             outRasterPath = outRasterDir + os.sep + shpName + '_feature_' + \
