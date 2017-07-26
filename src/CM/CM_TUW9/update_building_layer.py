@@ -79,9 +79,8 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
 
 if __name__ == "__main__":
     start = time.time()
-    os.chdir('../..')
-    data_warehouse = os.getcwd() + os.sep + 'AD/data_warehouse'
-    output_dir = os.getcwd() + os.sep + 'Outputs'
+    data_warehouse = path + os.sep + 'AD/data_warehouse'
+    output_dir = path + os.sep + 'Outputs'
     inputCSV = output_dir + os.sep + "CM9_building_strd_info.csv"
     outShapefile = output_dir + os.sep + "CM9_updated_building_footprint_" \
                                          "AT.shp"

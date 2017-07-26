@@ -31,5 +31,4 @@ if __name__ == "__main__":
     noDataValue = 0
     main(outRasterPath, geo_transform, dataType, array, noDataValue)
     elapsed = time.time() - start
-    print("%0.3f seconds" %elapsed)
-
+    print("%0.3f seconds" % elapsed)
