@@ -230,14 +230,12 @@ class ExtractAndTransformOSMData():
                         building_lyr_file_out3035 = (building_lyr_file_out[:-4] 
                                                      + "_3035" + building_lyr_file_out[-4:])
                         
-                        process_file = True
                         if building_lyr_file_out.endswith(".cpg") == True: # Codex
                             continue
                         if os.path.exists(building_lyr_file_out3035):
                             mod_time_out = os.stat(building_lyr_file_out3035).st_mtime
                         else: 
                             mod_time_out = 0
-                        
                         
                         if mod_time_out < mod_time_in:
                             
@@ -248,13 +246,14 @@ class ExtractAndTransformOSMData():
                         break
                             
                         
-            # Extract 
-            if process_any_file == False :
-                print("    Converted File:      %s" 
+            
+            print("    Converted File:      %s" 
                                     % time.strftime("%a, %d %b %Y %H:%M:%S", 
                                                     time.localtime(mod_time_out)))
+            if process_any_file == False :
                 print("%s : Most recent data extracted" %input_base_name)
-            else:             
+            else:  
+                # Extract            
                 for info in zfile.infolist():
                     for lyr_zip_name in OSM_input_feat_dict:
                         if lyr_zip_name in info.filename:
