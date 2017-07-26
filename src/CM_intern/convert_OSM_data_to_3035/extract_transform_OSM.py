@@ -238,10 +238,9 @@ class ExtractAndTransformOSMData():
                         else: 
                             mod_time_out = 0
                         
+                        
                         if mod_time_out < mod_time_in:
-                            print("    Converted File:      %s" 
-                                    % time.strftime("%a, %d %b %Y %H:%M:%S", 
-                                                    time.localtime(mod_time_out)))
+                            
                             process_any_file = True
                             break
                     
@@ -251,6 +250,9 @@ class ExtractAndTransformOSMData():
                         
             # Extract 
             if process_any_file == False :
+                print("    Converted File:      %s" 
+                                    % time.strftime("%a, %d %b %Y %H:%M:%S", 
+                                                    time.localtime(mod_time_out)))
                 print("%s : Most recent data extracted" %input_base_name)
             else:             
                 for info in zfile.infolist():
@@ -291,27 +293,24 @@ class ExtractAndTransformOSMData():
                 # Transformation of Layer CRS
                 st = time.time()
                 rp.reprojectShp2Shp(building_lyr_file_out2, building_lyr_file_out3)
-                print("GDAL: %4.3f sec" %(time.time() - st))
-                st = time.time()
-                rp.reproject(building_lyr_file_out2, building_lyr_file_out3)
-                print("Qgis: %4.3f sec" %(time.time() - st))
+                print("           GDAL Transformation: %4.3f sec" %(time.time() - st))
                 NEW_SHAPE_FILE = True
-                print("         New reprojected files: %s" % building_lyr_file_out3)
-            """
-            for (dirpath, dirnames,filenames) in os.walk(os.path.dirname(building_lyr_file_out3)):
-                for fn in filenames:
-                    if "_3035." in fn:
-                        pass
-                    else:
-                        full_fn = "%s/%s" %(dirpath, fn)
-                        full_fn_3035 = full_fn[:-4] + "_3035" + full_fn[-4:]
-                        if os.path.exists(full_fn_3035):
-                            try:
-                                os.remove(full_fn)
-                            except:
-                                pass
-            """
-            return NEW_SHAPE_FILE
+                print("         Reprojection finished")
+            
+        for (dirpath, dirnames,filenames) in os.walk(building_lyr_path_out2):
+            for fn in filenames:
+                if "_3035." in fn:
+                    pass
+                else:
+                    full_fn = "%s/%s" %(dirpath, fn)
+                    full_fn_3035 = full_fn[:-4] + "_3035" + full_fn[-4:]
+                    if os.path.exists(full_fn_3035):
+                        try:
+                            os.remove(full_fn)
+                        except:
+                            pass
+            
+        return NEW_SHAPE_FILE
         
         
         
