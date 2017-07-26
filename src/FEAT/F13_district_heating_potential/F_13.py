@@ -1,8 +1,12 @@
 import os
 import sys
-sys.path.insert(0, '../..')
+path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
 from AD.F13_district_heating_potential.main import ad_f13
-from CM.CM_TUW4 import district_heating_potential as DHP
+import CM.CM_TUW19.run_cm as CM19
+import CM.CM_TUW4.run_cm as CM4 
+
 
 
 def execute(outRasterPath):
@@ -14,16 +18,17 @@ def execute(outRasterPath):
     # Shapefile of NUTS0, 1, 2, 3 should be available in data warehouse; User
     # should also be able to calculate potential for the selected area: shall
     # be considered in AD
-    DH_Regions, arr1, origin = DHP.DHReg(heat_density_map, strd_vector,
-                                         pix_threshold, DH_threshold)
-    result = DHP.DHPotential(DH_Regions, arr1)
-    DHP.array2raster(outRasterPath, origin, 100, -100, "float32", result, 0)
+    DH_Regions, arr1, origin = CM4.main(heat_density_map, strd_vector,
+                                        pix_threshold, DH_threshold)
+    result = CM4.DHPotential(DH_Regions, arr1)
+    geo_transform = [origin[0], 100, 0, origin[1], 0, -100]
+    CM19.main(outRasterPath, geo_transform, str(result.dtype), result)
 
 if __name__ == "__main__":
-    os.chdir('../..')
-    output_dir = os.getcwd() + os.sep + 'Outputs'
+    print('Calculation started!')
+    output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-    outRasterPath = output_dir + os.sep + 'Pot_AT_TH30.tif'
-    os.chdir(os.getcwd() + '/FEAT/F13_district_heating_potential')
+    outRasterPath = output_dir + os.sep + 'F13_' + 'Pot_AT_TH30.tif'
     execute(outRasterPath)
+    print('Calculation ended successfully!')

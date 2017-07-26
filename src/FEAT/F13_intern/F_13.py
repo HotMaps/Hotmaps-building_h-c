@@ -1,9 +1,13 @@
 import os
 import sys
-sys.path.insert(0, '../..')
+path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
 from AD.F13_district_heating_potential.main import ad_f13
-from CM.CM_TUW4 import district_heating_potential as DHP
+import CM.CM_TUW4.run_cm as CM4
+import CM.CM_TUW19.run_cm as CM19
 from CM_intern.clip import clip_raster
+
 
 def execute(outRasterPath):
     # hdm in raster format from default dataset
@@ -14,27 +18,24 @@ def execute(outRasterPath):
     # Shapefile of NUTS0, 1, 2, 3 should be available in data warehouse; User
     # should also be able to calculate potential for the selected area: shall
     # be considered in AD
-    DH_Regions, arr1, origin = DHP.DHReg(heat_density_map, strd_vector,
+    DH_Regions, arr1, origin = CM4.main(heat_density_map, strd_vector,
                                          pix_threshold, DH_threshold)
-    result = DHP.DHPotential(DH_Regions, arr1)
-    DHP.array2raster(outRasterPath, origin, 100, -100, "float32", result, 0)
-    result = arr1 * DH_Regions.astype(int)
+    pot_result = CM4.DHPotential(DH_Regions, arr1)
+    geo_transform = [origin[0], 100, 0, origin[1], 0, -100]
+    CM19.main(outRasterPath, geo_transform, str(pot_result.dtype), pot_result)
+    pix_result = arr1 * DH_Regions.astype(int)
     # create raster cuts and summations
-    geoTrans = [origin[0], 100, 0, origin[1], 0, -100]
-    output_dir = os.getcwd() + os.sep + 'Outputs'
-#     clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
-#                 save2csv=None, save2raster=None, save2shp=None,
-#                 unit_multiplier=None)
-    clip_raster(result, strd_vector, output_dir, gt=geoTrans, nodata=0,
-                save2csv=True, save2raster=True, save2shp=True,
+    output_dir = path + os.sep + 'Outputs'
+    clip_raster(pix_result, strd_vector, output_dir, gt=geo_transform,
+                nodata=0, save2csv=True, save2raster=True, save2shp=True,
                 unit_multiplier=0.01)
 
 
 if __name__ == "__main__":
-    os.chdir('../..')
-    output_dir = os.getcwd() + os.sep + 'Outputs'
+    print('Calculation started!')
+    output_dir = path + os.sep + "Outputs"
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-    outRasterPath = output_dir + os.sep + 'Pot_AT_TH30.tif'
-    os.chdir(os.getcwd() + '/FEAT/F13_intern')
+    outRasterPath = output_dir + os.sep + 'F13intern_Pot_AT_TH30.tif'
     execute(outRasterPath)
+    print('Calculation ended successfully!')
