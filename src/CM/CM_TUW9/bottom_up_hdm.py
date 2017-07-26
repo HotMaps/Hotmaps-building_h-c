@@ -4,68 +4,50 @@ Created on July 6 2017
 
 @author: fallahnejad@eeg.tuwien.ac.at
 """
+from docutils.io import InputError
+import os
+import sys
 import numpy as np
 import pandas as pd
-from osgeo import gdal
-from osgeo import osr
 import time
+path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
+import CM.CM_TUW19.run_cm as CM19
+
 '''
 Functions:
 - zonStat_selectedArea: Reads a CSV file containing demand values with [kWh]
 unit as well as X-Y coordinates in EPSG: 3035 coordinate for each building;
 Calculates demand in every 1ha pixel and export a heat density array [GWh/km2]
 to the array2raster function.
-- array2raster: Gets a numpy array as an input and creates a raster.
 '''
 
 
-def array2raster(outRasterPath, rasterOrigin, pixelWidth, pixelHeight,
-                 dataType, array, noDataValue):
-    # conversion of data types from numpy to gdal
-    # float64 is the default to make sure large values are not missed.
-    dict_varTyp = {"int8":      gdal.GDT_Byte,
-                   "int16":     gdal.GDT_Int16,
-                   "int32":     gdal.GDT_Int32,
-                   "uint16":    gdal.GDT_UInt16,
-                   "uint32":    gdal.GDT_UInt32,
-                   "float32":   gdal.GDT_Float32,
-                   "float64":   gdal.GDT_Float64}
-    cols = array.shape[1]
-    rows = array.shape[0]
-    originX = rasterOrigin[0]
-    originY = rasterOrigin[1]
-
-    driver = gdal.GetDriverByName('GTiff')
-    outRaster = driver.Create(outRasterPath, cols, rows, 1,
-                              dict_varTyp[dataType], ['compress=LZW'])
-    outRaster.SetGeoTransform((originX, pixelWidth, 0,
-                               originY, 0, pixelHeight))
-    outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(3035)
-    outRaster.SetProjection(outRasterSRS.ExportToWkt())
-    outRaster.GetRasterBand(1).SetNoDataValue(noDataValue)
-    outRaster.GetRasterBand(1).WriteArray(array)
-    outRaster.FlushCache()
-
-
-def zonStat_selectedArea(inputCSV, outRasterPath, population=0):
+def zonStat_selectedArea(inputCSV, outRasterPath, population=0,
+                         resolution=100):
     '''
-    This function calculates the sum of demand within 100 m pixels.
-    The pixel will also overlay to the standard fishnet used for the hotmap
-    toolbox since the multiplying factor matches to distances from the origin
-    of the standard fishnet. The code assumes a resolution of 100x100 m for the
-    output.
+    This function calculates the sum of demand within a pixels with given
+    resolution. The pixel will also overlay to the standard fishnet used for
+    the hotmaps toolbox since the multiplying factor matches to distances from
+    the origin of the standard fishnet. The code assumes a resolution of
+    100x100 m for the output.
     '''
-    ifile = pd.read_csv(inputCSV)
+    if isinstance(inputCSV, pd.DataFrame):
+        ifile = inputCSV
+    else:
+        if not os.path.isfile(inputCSV):
+            raise InputError('The input csv file does not exist!')
+        ifile = pd.read_csv(inputCSV)
     demand = ifile['demand'].values
     GFA = ifile['GFA'].values
     X = ifile['X_3035'].values
     Y = ifile['Y_3035'].values
-    x0 = 100 * np.floor(np.min(X)/100).astype(int)
-    y0 = 100 * np.ceil(np.max(Y)/100).astype(int)
+    x0 = resolution * np.floor(np.min(X)/resolution).astype(int)
+    y0 = resolution * np.ceil(np.max(Y)/resolution).astype(int)
     rasterOrigin = (x0, y0)
-    xIndex = np.floor((X-x0)/100.0).astype(int)
-    yIndex = np.floor((y0-Y)/100.0).astype(int)
+    xIndex = np.floor((X-x0)/resolution).astype(int)
+    yIndex = np.floor((y0-Y)/resolution).astype(int)
     xWidth = np.max(xIndex) - np.min(xIndex) + 1
     yWidth = np.max(yIndex) - np.min(yIndex) + 1
     index = xIndex + xWidth * yIndex
@@ -89,9 +71,10 @@ def zonStat_selectedArea(inputCSV, outRasterPath, population=0):
     '''
     # kWh/ha = 10^(-4) * GWh/km2
     sumDem = 0.0001 * sumDem.reshape((yWidth, xWidth))
-    array2raster(outRasterPath, rasterOrigin, 100, -100, "float64", sumDem, 0)
+    geo_transform = [rasterOrigin[0], resolution, 0
+                     , rasterOrigin[1], 0, -resolution]
+    CM19.main(outRasterPath, geo_transform, str(sumDem.dtype), sumDem)
     abs_heat_demand = np.sum(demand)
-    sumGFA = np.sum(GFA)
     if np.sum(GFA):
         mean_spec_demand = abs_heat_demand/np.sum(GFA)
     else:
@@ -100,18 +83,18 @@ def zonStat_selectedArea(inputCSV, outRasterPath, population=0):
         mean_dem_perCapita = abs_heat_demand/float(population)
     else:
         mean_dem_perCapita = np.nan
-    print("Absolute heat demand: %0.1f GWh\n" \
-          "Mean heat demand per capita: %0.2f kWh\n" \
+    print("Absolute heat demand: %0.1f GWh\n"
+          "Mean heat demand per capita: %0.2f kWh\n"
           "Mean heat demand per heated surface (ave. specific demand): %0.2f"
-          %(abs_heat_demand *10**(-6), mean_dem_perCapita, mean_spec_demand))
+          % (abs_heat_demand*10**(-6), mean_dem_perCapita, mean_spec_demand))
 
 
 if __name__ == "__main__":
     start = time.time()
-    inputCSV = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-               "NoDemandData/Bistrita.csv"
-    outRasterPath = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                    "NoDemandData/Bistrita_HDM_V3.tif"
+    output_dir = path + os.sep + 'Outputs'
+    col = ['demand', 'GFA', 'X_3035', 'Y_3035']
+    data = np.array([[1000, 100, 4795000, 28073000]])
+    inputCSV = pd.DataFrame(data, columns=col)
+    outRasterPath = output_dir + os.sep + 'CM9_Heat_Density_Map.tif'
     zonStat_selectedArea(inputCSV, outRasterPath)
-
     print(time.time() - start)

@@ -5,6 +5,7 @@ Created on June 8 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
+import sys
 import time
 import numpy as np
 from osgeo import gdal
@@ -12,7 +13,14 @@ from osgeo import ogr
 from osgeo import osr
 import pandas as pd
 import shutil
+path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
 '''
+- This code only should be run when the specific demand values of the countries
+were changed. Otherwise, the corresponding outputs exist in the data warehouse.
+Subsequent to running this code, the obtained rasters should be input to the
+other codes within CM_TUW9.
 - This code reads the CSV file containing specific demand values of buildings
 in each EU country [kWh/m2/a] and creates a shapefile with a NUTS3 code field
 as well as all demand columns within the CSV file. The first row of the CSV
@@ -27,7 +35,8 @@ use the ouputs of this module and expect these names for the outputs.
 
 def gdal_rasterize(vector_fn, raster_fn, targetfield, pixel_size=100,
                    NoData_value=0, extention=(944000, 6503000,
-                                              942000, 5414000)):
+                                              942000, 5414000),
+                   OutputRasterSRS=3035):
     # Open the data source and read in the extent
     source_ds = ogr.Open(vector_fn)
     source_layer = source_ds.GetLayer()
@@ -41,7 +50,7 @@ def gdal_rasterize(vector_fn, raster_fn, targetfield, pixel_size=100,
                               gdal.GDT_Float32, ['compress=LZW'])
     target_ds.SetGeoTransform((x_min, pixel_size, 0, y_max, 0, -pixel_size))
     outRasterSRS = osr.SpatialReference()
-    outRasterSRS.ImportFromEPSG(3035)
+    outRasterSRS.ImportFromEPSG(OutputRasterSRS)
     target_ds.SetProjection(outRasterSRS.ExportToWkt())
     band = target_ds.GetRasterBand(1)
     band.SetNoDataValue(NoData_value)
@@ -127,17 +136,16 @@ def specific_demand(inShp, inCSV, outRasterPath):
         name = field
         if len(field) > 10:
             field = field[0:10]
-        gdal_rasterize(outShapefile, outRasterPath + os.sep + name +
+        gdal_rasterize(outShapefile, outRasterPath + os.sep + 'CM19_' + name +
                        'UsefulDemand.tif', field)
     shutil.rmtree(temp_dir)
 
 if __name__ == "__main__":
     start = time.time()
-    inCSV = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-            "NoDemandData/useful demand.csv"
-    inShp = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-            "NoDemandData/EU28.shp"
-    outRasterPath = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1" \
-                    "/NoDemandData"
+    data_warehouse = path + os.sep + 'AD/data_warehouse'
+    output_dir = path + os.sep + 'Outputs'
+    inCSV = data_warehouse + os.sep + 'useful_demand.csv'
+    inShp = data_warehouse + os.sep + 'AT.shp'
+    outRasterPath = output_dir
     specific_demand(inShp, inCSV, outRasterPath)
     print(time.time() - start)

@@ -5,10 +5,14 @@ Created on July 6 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
+import sys
 import time
 from osgeo import ogr
 from osgeo import osr
 import pandas as pd
+path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
 '''
 This module creates a shapefile with attributes which exist in the input
 shapefile of shp2csv.py module and assigns the calculated values to the
@@ -75,11 +79,12 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
 
 if __name__ == "__main__":
     start = time.time()
-    inputCSV = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-               "NoDemandData/Bistrita.csv"
-    outShapefile = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                   "NoDemandData/Bistrita_new.shp"
-    inShapefile = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                  "NoDemandData/Bistrita_3035.shp"
+    os.chdir('../..')
+    data_warehouse = os.getcwd() + os.sep + 'AD/data_warehouse'
+    output_dir = os.getcwd() + os.sep + 'Outputs'
+    inputCSV = output_dir + os.sep + "CM9_building_strd_info.csv"
+    outShapefile = output_dir + os.sep + "CM9_updated_building_footprint_" \
+                                         "AT.shp"
+    inShapefile = data_warehouse + os.sep + 'Sample_OSM_Building_Lyr.shp'
     update_building_lyr(inputCSV, inShapefile, outShapefile)
     print(time.time() - start)

@@ -5,13 +5,16 @@ Created on July 6 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
+import sys
 import pandas as pd
 import numpy as np
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 import time
-
+path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
 '''
 - The user can select a region which is potentially larger than his/her
 uploaded layer. An upper hand module should combine the uploaded layer with the
@@ -40,8 +43,9 @@ def indexing(UsefulDemandRaster, X, Y):
     transform = UsefulDemandDataSource.GetGeoTransform()
     x0 = transform[0]
     y0 = transform[3]
-    xIndex = np.floor((X-x0)/100.0).astype(int)
-    yIndex = np.floor((y0-Y)/100.0).astype(int)
+    resolution = transform[1]
+    xIndex = np.floor((X-x0)/resolution).astype(int)
+    yIndex = np.floor((y0-Y)/resolution).astype(int)
     band1 = UsefulDemandDataSource.GetRasterBand(1)
     arrUsefulDemand = band1.ReadAsArray()
     # find the indices which are out of range of the raster
@@ -75,6 +79,7 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
     outSpatialRef.ImportFromEPSG(3035)
     # Compare projection of input layer and the desired projection and
     # create the coordinate transformation parameter
+    flag = False
     if inSpatialRef != outSpatialRef:
         flag = True
         coordTrans = osr.CoordinateTransformation(inSpatialRef, outSpatialRef)
@@ -199,14 +204,15 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
 
 if __name__ == "__main__":
     start = time.time()
-    UsefulDemRastPath = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                        "NoDemandData"
-    ResidentialUsefulDemand = UsefulDemRastPath + "/ResidentialUsefulDemand.tif"
-    ServiceUsefulDemand = UsefulDemRastPath + "/ServiceUsefulDemand.tif"
-    outCSV = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-             "NoDemandData//Bistrita.csv"
-    inShapefile = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                  "NoDemandData/Bistrita_3035.shp"
+    data_warehouse = path + os.sep + 'AD/data_warehouse'
+    UsefulDemRastPath = data_warehouse
+    output_dir = path + os.sep + 'Outputs'
+    ResidentialUsefulDemand = UsefulDemRastPath + "/ResidentialUsefulDemand_" \
+                                                  "AT.tif"
+    ServiceUsefulDemand = UsefulDemRastPath + "/ServiceUsefulDemand_AT.tif"
+    outCSV = output_dir + os.sep + "CM9_building_strd_info.csv"
+    inShapefile = data_warehouse + os.sep + 'Sample_OSM_Building_Lyr.shp'
     UsefulDemandRaster = [ResidentialUsefulDemand, ServiceUsefulDemand]
     shp2csv(inShapefile, UsefulDemandRaster, outCSV)
-    print(time.time() - start)
+    elapsed = time.time() - start
+    print("%0.3f seconds" % elapsed)
