@@ -83,7 +83,7 @@ def scrapper(string, country, wait_factor=0
         f = open("%s%s" % ("", "test.html"), 'wb')
         f.write(content)
         f.close()
-        soup = BeautifulSoup(content)
+        soup = BeautifulSoup(content, "html5lib")
         links = (soup.findAll("a"))
         links_list = []
         for l in links:
@@ -119,6 +119,7 @@ def scrapper(string, country, wait_factor=0
             
         try:
             os.remove("%s%s" % ("", "test.html"))
+            os.remove("%s%s" % ("", "links.txt"))
         except:
             pass
         return (links_and_names)
@@ -241,6 +242,7 @@ class LeachOSMFilesFromGeofabrik():
             
         return (error_occured
                 , DATA)
+        
     def _dump_bin_file(self, filename, DATA
                        , check=True):
         """
@@ -251,8 +253,21 @@ class LeachOSMFilesFromGeofabrik():
         error_occured = False
         
         time.sleep(0.5)
+        new_file_name = ""
+        if os.path.exists(filename) and os.path.isfile(filename):
+            new_file_name = ("%s_%s.%s" % (filename[:-3]
+                                , time.strftime("%Y_%d %b %H-%M-%S", 
+                                  time.localtime(time.time())) 
+                                , filename[-2:]))
+            try:
+                os.rename(filename, new_file_name)
+            except:
+                print("Copying file: %s failed" % new_file_name)
+
+            
         try:
-            with open(filename, 'wb') as output:           
+            fn_dummy = filename + "_dummy"
+            with open(fn_dummy, 'wb') as output:           
                 pickle.dump(DATA, output, pickle.HIGHEST_PROTOCOL)
         except:
             error_occured = True
@@ -261,11 +276,39 @@ class LeachOSMFilesFromGeofabrik():
                 output.close()
             except: 
                 pass  
-        time.sleep(1)  
+        time.sleep(1) 
         
         if error_occured == False and check == True:
-            (error_occured, DATA) = self._load_bin_file(filename)
-        
+            (error_occured, DATA) = self._load_bin_file(fn_dummy)
+            
+            
+        if error_occured == False and os.path.exists(fn_dummy):
+            new_size = os.stat(fn_dummy).st_size
+
+            if new_file_name != "" and os.path.exists(new_file_name):
+                old_size = os.stat(new_file_name).st_size
+            elif os.path.exists(filename):
+                old_size = os.stat(filename).st_size
+            else:
+                old_size = 0
+            
+            if new_size >= 0.8 * old_size:
+                if os.path.exists(filename):
+                    try:
+                        os.rename(filename, new_file_name)
+                    except:
+                        os.remove(filename)
+                try:
+                    os.rename(fn_dummy, filename)
+                except:
+                    error_occured = True
+                    
+                    
+                    
+        if error_occured == True:
+            print("\n\n\n  Creating file: %s failed ")
+            print("Abort process\n   -> End")
+            sys.exit()
          
         return (error_occured)
     
@@ -297,8 +340,8 @@ class LeachOSMFilesFromGeofabrik():
                     else:
                         date_size_check_online = 0
                     
-                    self.FINAL_DOWNLOAD_LINKS.append(url_, fn, 0, 0, 0
-                                , date_size_check_online, online_size)
+                    self.FINAL_DOWNLOAD_LINKS.append([url_, fn, 0, 0, 0
+                                , date_size_check_online, online_size])
         
         self._check_size_and_date_local_file()   
         error_occured = self._dump_bin_file(self.fn_final_download_list
