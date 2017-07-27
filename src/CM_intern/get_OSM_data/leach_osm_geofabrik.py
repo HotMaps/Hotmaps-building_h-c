@@ -244,10 +244,10 @@ class LeachOSMFilesFromGeofabrik():
                     input.close()
                 except: 
                     pass  
-            if error_occured == True:
-                print("Cannot read existing file: %s " % filename) 
-                print("Check Python version 2/3?. Abort run --> End: ") 
-                sys.exit()
+        if error_occured == True:
+            print("Cannot read existing file: %s " % filename) 
+            print("Check Python version 2/3?. Abort run --> End: ") 
+            sys.exit()
         return (error_occured
                 , DATA)
         
