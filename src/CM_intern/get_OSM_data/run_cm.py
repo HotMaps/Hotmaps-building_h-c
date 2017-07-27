@@ -18,17 +18,18 @@ def main(data_path):
     LOSMF = LeachOSMFilesFromGeofabrik(data_path)
     
     # Call method to add new urls to Data File
-    # LOSMF.request_urls(check_size=False)
-
+    LOSMF.request_urls(check_size=False)
+    #LOSMF.print_URLcollectionData()
     # each online file size is a request, the total daily number of request is limited to about 40
     try:
-        LOSMF.check_size_online_file(range(1))
+        pass
+        LOSMF.check_size_online_file(range(130))
     except Exception as e:
         print(e)
     LOSMF.print_URLcollectionData()
-    IndexListOfDownloads = LOSMF.determine_most_urgent_downloads(20)
+    IndexListOfDownloads = LOSMF.determine_most_urgent_downloads(35)
     # each download is a request, the total daily number of request is limited to about 40
-    #LOSMF.download_OSM_files(IndexListOfDownloads[:])
+    LOSMF.download_OSM_files(IndexListOfDownloads[:])
     
     
 

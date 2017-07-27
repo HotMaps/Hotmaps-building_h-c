@@ -35,12 +35,12 @@ main_link = "http://download.geofabrik.de/europe.html"
 # check geofabrik for urls/new urls
 request_urls = False
 # geofabrik allows only 40 request per day
-MaxNumDownloads = 30
+MaxNumDownloads = 35
 
 # check online size of data file (counts as one request!)
 #check_download_size = True
 #number of checks for online size -> if there is a very recent size check then not needed
-MaxNumSizeCheck = 10
+MaxNumSizeCheck = 20
 
 # if true perform actual download
 TEST_SYSTEM = False
@@ -599,7 +599,7 @@ class LeachOSMFilesFromGeofabrik():
                 print("\n Request Nr. %i --  Filename: %s, size: %4.2f MB (local file size: %4.2f MB)" % 
                       (self.RequestCounter, fn, size_online_latest / 10 ** 6, local_size / 10 ** 6))
               
-            if  size_online_latest == None or size_online_latest < 10:
+            if  size_online_latest == None or size_online_latest < 1000:
                 print("No data recevied")
                 break
             else:
