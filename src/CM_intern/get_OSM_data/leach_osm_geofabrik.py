@@ -398,6 +398,9 @@ class LeachOSMFilesFromGeofabrik():
             
             
             local_size = float(local_size)  
+            if date_size_check_online < mod_time_local - 1000:
+                date_size_check_online = mod_time_local - 1000
+                
             self.FINAL_DOWNLOAD_LINKS[i] = (url_, fn2, mod_time_local, local_size, size_online_last_download
                                             , date_size_check_online, size_online_latest)
 
@@ -595,7 +598,12 @@ class LeachOSMFilesFromGeofabrik():
                 size_online_latest = float(size_online_latest)
                 print("\n Request Nr. %i --  Filename: %s, size: %4.3f MB" % 
                       (self.RequestCounter, fn, size_online_latest / 10 ** 6))
-                
+              
+            if  size_online_latest == None or size_online_latest < 10:
+                print("No data recevied")
+                break
+            else:
+                date_size_check_online = time.time()    
                  
             with open(local_fn + "_temp", "wb") as f:
                 
@@ -653,7 +661,8 @@ class LeachOSMFilesFromGeofabrik():
             else:
                 print("Error occurred while downloading %s" % url_)
           
-        print("Done!") 
+        print("Done!")
+        return 
        
 if __name__ == "__main__":
     
