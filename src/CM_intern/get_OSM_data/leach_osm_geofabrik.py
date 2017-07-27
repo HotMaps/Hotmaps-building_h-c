@@ -5,21 +5,20 @@ Created on 29.04.2014
 @author: andreas
 '''
 import requests 
- 
+import zipfile
 
-
-import urllib
+#import urllib
 from bs4 import BeautifulSoup
 import time
-
 
 import os
 import random
 import base64
 import numpy as np
 import pickle
-import datetime
+#import datetime
 import sys
+
 if sys.version_info[0] == 2:
     import urllib2 as urllib2
 else:
@@ -41,7 +40,7 @@ MaxNumDownloads = 30
 # check online size of data file (counts as one request!)
 #check_download_size = True
 #number of checks for online size -> if there is a very recent size check then not needed
-MaxNumSizeCheck = 20
+MaxNumSizeCheck = 10
 
 # if true perform actual download
 TEST_SYSTEM = False
@@ -62,7 +61,7 @@ def scrapper(string, country, wait_factor=0
     
     a = random.random()
     wait_time = a*wait_factor
-    print("wait %3.1f sec: " % wait_time)
+    #print("wait %3.1f sec: " % wait_time)
     time.sleep(wait_time)
     
     request = urllib2.Request(string.replace(" ", "%20"))
@@ -83,7 +82,7 @@ def scrapper(string, country, wait_factor=0
         f = open("%s%s" % ("", "test.html"), 'wb')
         f.write(content)
         f.close()
-        soup = BeautifulSoup(content)
+        soup = BeautifulSoup(content, "html5lib")
         links = (soup.findAll("a"))
         links_list = []
         for l in links:
@@ -119,6 +118,7 @@ def scrapper(string, country, wait_factor=0
             
         try:
             os.remove("%s%s" % ("", "test.html"))
+            os.remove("%s%s" % ("", "links.txt"))
         except:
             pass
         return (links_and_names)
@@ -190,6 +190,7 @@ class LeachOSMFilesFromGeofabrik():
         self.fn_final_download_list = "%s/%s" %(self.data_path, FN_FINAL_DOWNLOAD_LIST)
         
         error_occured, tuple_  = self._load_bin_file(self.fn_final_download_list)
+        
         if error_occured == False:
             self.FINAL_DOWNLOAD_LINKS = list(tuple_)
         else:
@@ -227,20 +228,29 @@ class LeachOSMFilesFromGeofabrik():
         """
         
         error_occured = False
-        try:
-            with open(filename, 'rb') as input:  
-                DATA = pickle.load(input)  
-        except:
+        if os.path.exists(filename) == False:
             DATA = tuple()
+            print("file %s doesnt exits" % filename)
             error_occured = True
-        finally:
+        else:
             try:
-                input.close()
-            except: 
-                pass  
-            
+                with open(filename, 'rb') as input:  
+                    DATA = pickle.load(input)  
+            except Exception as e:
+                print(e)
+                error_occured = True
+            finally:
+                try:
+                    input.close()
+                except: 
+                    pass  
+            if error_occured == True:
+                print("Cannot read existing file: %s " % filename) 
+                print("Check Python version 2/3?. Abort run --> End: ") 
+                sys.exit()
         return (error_occured
                 , DATA)
+        
     def _dump_bin_file(self, filename, DATA
                        , check=True):
         """
@@ -251,9 +261,22 @@ class LeachOSMFilesFromGeofabrik():
         error_occured = False
         
         time.sleep(0.5)
+        new_file_name = ""
+        if os.path.exists(filename) and os.path.isfile(filename):
+            new_file_name = ("%s_%s.%s" % (filename[:-3]
+                                , time.strftime("%Y_%d %b %H-%M-%S", 
+                                  time.localtime(time.time())) 
+                                , filename[-2:]))
+            try:
+                os.rename(filename, new_file_name)
+            except:
+                print("Copying file: %s failed" % new_file_name)
+
+            
         try:
-            with open(filename, 'wb') as output:           
-                pickle.dump(DATA, output, pickle.HIGHEST_PROTOCOL)
+            fn_dummy = filename + "_dummy"
+            with open(fn_dummy, 'wb') as output:           
+                pickle.dump(DATA, output, protocol = 2)
         except:
             error_occured = True
         finally:
@@ -261,11 +284,39 @@ class LeachOSMFilesFromGeofabrik():
                 output.close()
             except: 
                 pass  
-        time.sleep(1)  
+        time.sleep(1) 
         
         if error_occured == False and check == True:
-            (error_occured, DATA) = self._load_bin_file(filename)
-        
+            (error_occured, DATA) = self._load_bin_file(fn_dummy)
+            
+            
+        if error_occured == False and os.path.exists(fn_dummy):
+            new_size = os.stat(fn_dummy).st_size
+
+            if new_file_name != "" and os.path.exists(new_file_name):
+                old_size = os.stat(new_file_name).st_size
+            elif os.path.exists(filename):
+                old_size = os.stat(filename).st_size
+            else:
+                old_size = 0
+            
+            if new_size >= 0.8 * old_size:
+                if os.path.exists(filename):
+                    try:
+                        os.rename(filename, new_file_name)
+                    except:
+                        os.remove(filename)
+                try:
+                    os.rename(fn_dummy, filename)
+                except:
+                    error_occured = True
+                    
+                    
+                    
+        if error_occured == True:
+            print("\n\n\n  Creating file: %s failed ")
+            print("Abort process\n   -> End")
+            sys.exit()
          
         return (error_occured)
     
@@ -297,8 +348,8 @@ class LeachOSMFilesFromGeofabrik():
                     else:
                         date_size_check_online = 0
                     
-                    self.FINAL_DOWNLOAD_LINKS.append(url_, fn, 0, 0, 0
-                                , date_size_check_online, online_size)
+                    self.FINAL_DOWNLOAD_LINKS.append([url_, fn, 0, 0, 0
+                                , date_size_check_online, online_size])
         
         self._check_size_and_date_local_file()   
         error_occured = self._dump_bin_file(self.fn_final_download_list
@@ -522,7 +573,7 @@ class LeachOSMFilesFromGeofabrik():
             self._print_URLcollectionData(url_, fn, mod_time_local, local_size, size_online_last_download, date_size_check_online, size_online_latest)
         print ("\n\n\nStart Downloads\n")
         for idx in index_list:
-            if self.RequestCounter > MaxNumDownloads:
+            if self.RequestCounter >= MaxNumDownloads:
                 break
             (url_, fn, mod_time_local, local_size, size_online_last_download
                 , date_size_check_online, size_online_latest) = self.FINAL_DOWNLOAD_LINKS[idx] 
@@ -530,22 +581,64 @@ class LeachOSMFilesFromGeofabrik():
             #Don't download data within 4 days
             if mod_time_local >= time.time() - 3600*24*4:
                 continue
-            
             local_fn = '%s/%s'%(self.data_path, fn)
-            
-            print("    Filename: %s, size: %4.3f MB" % (fn
-                        , np.maximum(size_online_latest, size_online_last_download) / 10 ** 6))
-            
-            if TEST_SYSTEM == False:
-                if size_online_latest <= time.time() - 3600*24*10:
-                    self.RequestCounter += 1
-                    size_, meta = get_site_info(url_)
-                    date_size_check_online = time.time()
-                    size_online_latest = float(size_)
+            if os.path.exists(local_fn + "_temp") and os.path.isfile(local_fn + "_temp"):
+                try:
+                    os.remove(local_fn + "_temp")
+                except:
+                    print("Cannot remove file: %s" % local_fn + "_temp")
+                    continue
+            self.RequestCounter += 1
+            response = requests.get(url_, stream=True)
+            size_online_latest = response.headers.get('content-length')
+            if size_online_latest != None:
+                size_online_latest = float(size_online_latest)
+                print("\n Request Nr. %i --  Filename: %s, size: %4.3f MB" % 
+                      (self.RequestCounter, fn, size_online_latest / 10 ** 6))
+                
+                 
+            with open(local_fn + "_temp", "wb") as f:
+                
+                print("Downloading %s" % local_fn + "_temp")
+
+                if size_online_latest is None: # no content length header
+                    f.write(response.content)
+                else:
+                    dl = 0
+                    total_length = int(size_online_latest)
+                    for data in response.iter_content(chunk_size=int(size_online_latest / 10+10)):
+                        dl += len(data)
+                        f.write(data)
+                        percent = int(100 * dl / total_length)
+                        sys.stdout.write("  %2d%%" % percent)
+                        sys.stdout.flush()
+                    print("\n")
                     
-                getfile = urllib.URLopener()
-                self.RequestCounter += 1
-                getfile.retrieve(url_, local_fn + "_temp")
+            error_occured = False          
+            try:
+                if (os.stat(local_fn ).st_size  <= 0.8 * os.stat(local_fn + "_temp").st_size
+                        or os.stat(local_fn + "_temp").st_size < 0.95 * size_online_latest):
+                    error_occured = True
+                    print("Downloaded file is to small (%s)" % (local_fn + "_temp"))
+            
+                testopen = zipfile.ZipFile(local_fn + "_temp", 'r')
+                try:
+                    testopen.close()
+                except:
+                    pass
+            except:   
+                error_occured = True
+            try:
+                testopen = zipfile.ZipFile(local_fn + "_temp", 'r')
+                try:
+                    testopen.close()
+                except:
+                    pass
+            except: 
+                print("Cannot open downloaded file (%s)" % (local_fn + "_temp"))  
+                error_occured = True
+            
+            if error_occured == False:  
                 if os.path.exists(local_fn):
                     os.remove(local_fn)
                 os.rename(local_fn + "_temp", local_fn )
@@ -557,6 +650,8 @@ class LeachOSMFilesFromGeofabrik():
             
                 error_occured = self._dump_bin_file(self.fn_final_download_list
                                     , self.FINAL_DOWNLOAD_LINKS) 
+            else:
+                print("Error occurred while downloading %s" % url_)
           
         print("Done!") 
        
