@@ -596,8 +596,8 @@ class LeachOSMFilesFromGeofabrik():
             size_online_latest = response.headers.get('content-length')
             if size_online_latest != None:
                 size_online_latest = float(size_online_latest)
-                print("\n Request Nr. %i --  Filename: %s, size: %4.3f MB" % 
-                      (self.RequestCounter, fn, size_online_latest / 10 ** 6))
+                print("\n Request Nr. %i --  Filename: %s, size: %4.2f MB (local file size: %4.2f MB)" % 
+                      (self.RequestCounter, fn, size_online_latest / 10 ** 6, local_size / 10 ** 6))
               
             if  size_online_latest == None or size_online_latest < 10:
                 print("No data recevied")
