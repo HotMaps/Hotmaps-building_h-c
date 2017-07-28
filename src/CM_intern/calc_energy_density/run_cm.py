@@ -20,7 +20,7 @@ def main(pr_path, NUTS3_feat_id_LIST):
 if __name__ == "__main__":
     
     print(sys.version_info)
-    pr_path = "./HOTMAPS___FirstMess/ED3/DATA"
+    pr_path = "/home/simulant/workspace/project/Hotmaps_DATA/heat_density_map/"
     
     
     #Nuts3 Regions

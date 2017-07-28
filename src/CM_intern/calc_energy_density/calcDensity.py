@@ -3,28 +3,19 @@ import shutil
 import sys, os, time, gdal, ogr
 sys.path.insert(0, "../..")
 
-import  modules.Subfunctions as SF
+import  CM_intern.common_modules.Subfunctions as SF
 
-import  modules.changeRastExt as cre   # import RastExtMod
-import  modules.higherRes as hr        # import HighRes
-import  modules.query as qu
-import  modules.rasterize as ra
+import  CM_intern.calc_energy_density.modules.changeRastExt as cre   # import RastExtMod
+import  CM_intern.calc_energy_density.modules.higherRes as hr        # import HighRes
+import  CM_intern.calc_energy_density.modules.query as qu
+import  CM_intern.calc_energy_density.modules.rasterize as ra
 
 #from zonal_statistics import ZonalStat
 
 import CM_intern.common_modules.array2raster as a2r
-import modules.cython_files.SumOfHighRes_64 as SOHR
-"""
-try:
-    from modules.cython_files.SumOfHighRes_64 import CalcSum as CoreLoopSumLowRes
-    from modules.cython_files.SumOfHighRes_64 import CalcAverageBased
-    from modules.cython_files.SumOfHighRes_64 import CalcHighRes
-except:
-    pass
-    #from cython_files.SumOfHighRes import CalcSum as CoreLoopSumLowRes
-    #from cython_files.SumOfHighRes import CalcAverageBased
-#from cython_files.SumOfHighRes_py import CalcAverageBased
-"""
+import CM_intern.common_modules.cliprasterlayer as crl
+import CM_intern.calc_energy_density.modules.cython_files.SumOfHighRes_64 as SOHR
+
 DEBUG = False
 linux = "linux" in sys.platform
 
@@ -158,57 +149,7 @@ def HeatDensity(r1, r2, r3, r4, r5, r7, rasterOrigin, output):
     """
     result = None
 
-def _cut_pop_layer_get_layer_origin(strd_raster_path_full, strd_raster_path
-                                    , strd_vector_path, datatype, NUTS3_feat_id_LIST):
-    
-    SaveLayerDict = {}
-    if strd_raster_path_full != strd_raster_path:
-        key_field = "NUTS_ID"
-        #feat_id_LIST = [12,13,14]  # 14refers to the feature ID of Vienna
-        
-        (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_pop_cut 
-         , noDataVal_, feat_name_dict) = SF.cut_population_layer(
-                         NUTS3_feat_id_LIST
-                         , strd_vector_path
-                         , strd_raster_path_full
-                         , strd_raster_path
-                         , datatype)
-        
-        #a2r.array2raster(outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_pop_cut , noDataVal_)
-        SaveLayerDict[outRastPath] = (outRastPath, rasterOrigin2, pxWidth, pxHeight
-                                      , DatType, arr_pop_cut , noDataVal_)
-        transform = (rasterOrigin2[0], pxWidth, 0.0, rasterOrigin2[1], 0.0, pxHeight)
-        ########################################
-        # END
-        #
-        ######################################
 
-    try:     
-        if len(transform) != 6:
-            load_layer = True
-        else:
-            load_layer = False
-            (RasterYSize, RasterXSize) = arr_pop_cut.shape
-        
-    except:
-        load_layer = True
-        
-    if load_layer == True: 
-        
-        #Load (smaller) population layer         
-        cutRastDatasource = gdal.Open(strd_raster_path)
-        transform = cutRastDatasource.GetGeoTransform()
-        RasterXSize = cutRastDatasource.RasterXSize
-        RasterYSize = cutRastDatasource.RasterYSize
-    
-    minx = transform[0]
-    maxy = transform[3]
-    maxx = minx + transform[1] * RasterXSize
-    miny = maxy + transform[5] * RasterYSize
-    extent = (minx,maxx,miny,maxy)
-    rasterOrigin = (minx, maxy)
-    
-    return rasterOrigin, extent, SaveLayerDict
   
 def _process1(org_data_path, temp_path, strd_raster_path, r1, noDataValue):  
     # cuts SOIL Sealing cuts to same size as population layer, smaller data processing (Values above 100%...)
@@ -480,18 +421,26 @@ class ClassCalcDensity():
         self.pixelWidth = 100
         self.pixelHeight = -100 
         
+        # No Data Value (-17.3 to distinguesh between 0 and no Data)
+        # Not sure if No Data get this value or if this value is exported as NoData
+        self.noDataValue = -17.3
         # input data files
         
-        self.strd_vector_path = self.org_data_path+ os.sep + "NUTS3.shp"
-        self.strd_raster_path_full = self.org_data_path+ os.sep + "Population.tif"
-        self.strd_raster_path = "%s_small.tif" % self.strd_raster_path_full[:-4]
+        # Standard Vector layer (Nuts 3 shape file)
+        self.strd_vector_path = "%s/NUTS3.shp" % self.org_data_path
+        # Standard Raster layer 
+        # Population Layer
+        self.strd_raster_path_full = "%s/Population.tif" % self.org_data_path
+        # Clipped Raster layer
+        self.strd_raster_path = "%s_clipped.tif" % self.strd_raster_path_full[:-4]
         
         #outputs
         
+        #Soil Sealing and Population
         self.r1                = self.proc_data_path + os.sep + "ss_pop_cut.tif"
         self.r2                = self.proc_data_path + os.sep + "Pop_1km_100m.tif"
         self.r3                = self.proc_data_path + os.sep + "sum_ss_1km.tif"
-        #r4                = proc_data_path + os.sep + "Dem_in_Nuts.tif"
+
         self.r4                = self.temp_path + os.sep + "temp4.tif"
         self.r5                = self.proc_data_path + os.sep + "Pop_in_Nuts.tif"
         self.r6                = self.proc_data_path + os.sep + "CorineLU.tif"
@@ -521,11 +470,14 @@ class ClassCalcDensity():
         process5        = True
     
         
+        
         if del_temp_path:    
             if os.path.exists(self.temp_path):
                 shutil.rmtree(self.temp_path)   
-            if not os.path.exists(self.temp_path):
-                os.makedirs(self.temp_path)    
+        
+        if not os.path.exists(self.temp_path):
+                os.makedirs(self.temp_path) 
+                       
         if 0==1:
             if os.path.exists(self.r1):
                 process1 = False
@@ -538,18 +490,16 @@ class ClassCalcDensity():
             if os.path.exists(self.r5):
                 process5 = False
         
+
         
-        # common parameters
-        noDataValue = -17.3
-        #Standard population raster layer
-        # cut standard population raster
-        """
-        """
         SaveLayerDict = {}
         
-        rasterOrigin, extent, SaveLayerDict_ = _cut_pop_layer_get_layer_origin(self.strd_raster_path_full
+        # Clip Raster layer based on list of vector layer features (Selected NUTS3 Regions
+        Vctr_key_field = "NUTS_ID"
+        SaveLayerDict_, rasterOrigin, extent = crl.clip_raster_layer(self.strd_raster_path_full
                                                         , self.strd_raster_path
-                                                        , self.strd_vector_path, self.datatype, self.NUTS3_feat_id_LIST)
+                                                        , self.strd_vector_path, self.NUTS3_feat_id_LIST
+                                                        , Vctr_key_field, self.datatype)
         
         del_keys = []
         for k in list(SaveLayerDict_.keys()):
@@ -571,7 +521,7 @@ class ClassCalcDensity():
             st = time.time()
             print("\nProcess 1 SoilSealing")
             
-            SaveLayerDict_ = _process1(self.org_data_path, self.temp_path, self.strd_raster_path, self.r1, noDataValue)
+            SaveLayerDict_ = _process1(self.org_data_path, self.temp_path, self.strd_raster_path, self.r1, self.noDataValue)
             
             for k in list(SaveLayerDict_.keys()):
                 print (k)
@@ -587,7 +537,7 @@ class ClassCalcDensity():
             # Save as raster layer
             st = time.time()
             print("\nProcess 1a Corine Landcover data")
-            SaveLayerDict_ = _process1a(self.org_data_path, self.r7, self.strd_raster_path, noDataValue)
+            SaveLayerDict_ = _process1a(self.org_data_path, self.r7, self.strd_raster_path, self.noDataValue)
             
             for k in list(SaveLayerDict_.keys()):
                 print (k)
@@ -606,7 +556,7 @@ class ClassCalcDensity():
             print("\nProcess 2")
             
             SaveLayerDict_ = _process2(self.strd_raster_path, self.pixelWidth
-                                       , self.pixelHeight, self.r2, noDataValue)
+                                       , self.pixelHeight, self.r2, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 if k == "data_r2" and EXPORT_LAYERS == True:
@@ -653,7 +603,7 @@ class ClassCalcDensity():
             data_CLC = SaveLayerDict["data_CLC"][5]
             
             SaveLayerDict_ = _process3(arr1, data_CLC, self.r3, rasterOrigin
-                                       , self.pixelWidth, self.pixelHeight, noDataValue)
+                                       , self.pixelWidth, self.pixelHeight, self.noDataValue)
             del arr1
             for k in list(SaveLayerDict_.keys()):
                 print (k)
@@ -681,7 +631,7 @@ class ClassCalcDensity():
             print("\nProcess 4")
             
             SaveLayerDict_ = _process4(self.org_data_path, self.temp_path, extent
-                                       , self.strd_raster_path, self.r4, noDataValue)
+                                       , self.strd_raster_path, self.r4, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 if k == "data_r4" and EXPORT_LAYERS == True:
@@ -706,7 +656,7 @@ class ClassCalcDensity():
             st = time.time()
             print("\nProcess 5") 
             SaveLayerDict_ = _process5(self.org_data_path, self.temp_path
-                                       , extent, self.strd_raster_path, self.r5, noDataValue)
+                                       , extent, self.strd_raster_path, self.r5, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 if k == "data_r5" and EXPORT_LAYERS == True:
@@ -769,4 +719,4 @@ class ClassCalcDensity():
     
 if __name__ == "__main__":
     
-    main_process()
+    CCD = ClassCalcDensity()
