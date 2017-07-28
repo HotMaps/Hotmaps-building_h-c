@@ -501,12 +501,15 @@ class LeachOSMFilesFromGeofabrik():
         
         #Sort by local modification time
         sortIDX_mod_time = np.argsort(modification_time_arr)
-        oldest_download_time = sortIDX_mod_time[:number_of_downloads][-1]
+        newest_download_time = sortIDX_mod_time[:number_of_downloads][-1]
         
         # include all downloads which have the same download time (+ 2 days)
-        cutoff_time = modification_time_arr[oldest_download_time] + 3600*24*2
-        print("Cutoff date: %s" % time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(cutoff_time)))
+        cutoff_time = modification_time_arr[newest_download_time] + 3600*24*2
+        #Dont download file if has been done in the last 5 days
+        cutoff_time = np.minimum(cutoff_time, time.time() - 3600*24*5)
+        print("Cutoff date 2: %s" % time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(cutoff_time)))
         IDX = modification_time_arr <= cutoff_time
+        
         # Reduce Index Vector
         IndexVtr = IndexVtr[IDX]
         if IndexVtr.size == 0:
