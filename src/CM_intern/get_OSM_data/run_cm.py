@@ -29,7 +29,8 @@ def main(data_path):
     LOSMF.print_URLcollectionData()
     IndexListOfDownloads = LOSMF.determine_most_urgent_downloads(35)
     # each download is a request, the total daily number of request is limited to about 40
-    LOSMF.download_OSM_files(IndexListOfDownloads[:])
+    if len(IndexListOfDownloads) > 0:
+        LOSMF.download_OSM_files(IndexListOfDownloads[:])
     
     
 
