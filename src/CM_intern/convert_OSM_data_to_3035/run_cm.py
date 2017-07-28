@@ -29,6 +29,6 @@ if __name__ == "__main__":
 
     print(sys.version_info)
     input_data_path = "/home/simulant/ag_lukas/personen/Andreas/Openstreetmapdata"
-    output_data_path = "/home/simulant/workspace/project/hotmaps/HOTMAPS___FirstMess/openstreetmap/extract"
+    output_data_path = "/home/simulant/workspace/project/Hotmaps_DATA/extract"
 
     main(input_data_path, output_data_path)
