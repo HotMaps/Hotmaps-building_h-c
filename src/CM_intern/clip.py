@@ -14,19 +14,20 @@ from CM_intern import csv2shp
 import CM.CM_TUW19.run_cm as CM19
 
 
-def saveCSVorSHP(feat, demand, outCSVDir, save2csv=None, save2shp=None,
-                 inCSV=None, outShpPath=None):
+def saveCSVorSHP(feat, demand, features_path, output_dir, prefix='',
+                 save2csv=None, save2shp=None):
     df = pd.DataFrame()
-    df['Feature'] = np.array(feat)
+    df['id'] = np.array(feat)
     df['Sum'] = np.array(demand)
-    csv_path = outCSVDir + os.sep + 'clip_result.csv'
+    csv_path = output_dir + os.sep + prefix + '_clip_result.csv'
+    outShpPath = output_dir + os.sep + prefix + '_clip_result.shp'
     if save2csv:
         df.to_csv(csv_path)
     if save2shp:
         csv2shp.Excel2shapefile(features_path, df, outShpPath)
 
 
-def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
+def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
                 save2csv=None, save2raster=None, save2shp=None,
                 unit_multiplier=None, return_array=False):
     '''
@@ -218,14 +219,13 @@ def clip_raster(rast, features_path, outRasterDir, gt=None, nodata=-9999,
             print('Total demand/potential in region %s is: %0.1f GWh'
                   % (nuts_region, dem_sum))
         if save2raster:
-            outRasterPath = outRasterDir + os.sep + shpName + '_feature_' + \
+            outRasterPath = output_dir + os.sep + shpName + '_feature_' + \
                             str(fid) + '.tif'
             CM19.main(outRasterPath, gt3, str(clip_complete.dtype),
                       clip_complete, 0)
         if save2csv or save2shp:
-            outCSVDir = outRasterDir
-            saveCSVorSHP(feat, demand, outCSVDir, save2csv=None, save2shp=None,
-                         inCSV=None, outShpPath=None)
+            saveCSVorSHP(feat, demand, features_path, output_dir, shpName,
+                         save2csv, save2shp)
         if return_array:
             return clip_complete, gt3
 
@@ -240,6 +240,6 @@ if __name__ == '__main__':
         os.mkdir(output_dir)
     nodata = 0
     rast = gdal.Open(raster)
-    outRasterDir = output_dir
-    clip_raster(rast, features_path, outRasterDir, save2raster=True, nodata=0)
+    clip_raster(rast, features_path, output_dir, save2raster=True,
+                save2shp=True, save2csv=True, nodata=0)
     print(time.time() - start)
