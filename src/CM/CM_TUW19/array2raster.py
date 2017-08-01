@@ -10,7 +10,8 @@ import time
 import numpy as np
 from osgeo import gdal
 from osgeo import osr
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 '''

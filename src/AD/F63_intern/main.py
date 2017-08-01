@@ -9,7 +9,8 @@ import os
 def ad_f63(spec_demand_csv, building_strd_info_csv, inShapefile):
     [process0, process1, process2] = [True] * 3
     # path to the src
-    path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                           abspath(__file__))))
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
