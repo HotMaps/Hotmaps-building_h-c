@@ -6,7 +6,8 @@ Created on Jul 26, 2017
 import os
 import sys
 import time
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 import CM.CM_TUW9.main_block as mb

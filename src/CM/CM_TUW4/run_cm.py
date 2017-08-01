@@ -6,7 +6,8 @@ Created on Jul 26, 2017
 import os
 import time
 import sys
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 import CM.CM_TUW4.district_heating_potential as DHP

@@ -7,7 +7,8 @@ Created on July 6 2017
 import os
 import sys
 import time
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 from CM.CM_TUW9.bottom_up_hdm import zonStat_selectedArea as zs
