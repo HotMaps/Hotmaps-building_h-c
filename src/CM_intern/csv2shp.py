@@ -20,6 +20,11 @@ inputs:
 
 
 def Excel2shapefile(inShpPath, inCSV, outShpPath):
+    # read the input shapefile
+    inShapefile = inShpPath
+    inDriver = ogr.GetDriverByName("ESRI Shapefile")
+    inDataSource = inDriver.Open(inShapefile, 0)
+    inLayer = inDataSource.GetLayer()
     # set CRS
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(3035)
@@ -32,7 +37,10 @@ def Excel2shapefile(inShpPath, inCSV, outShpPath):
     outDriver = ogr.GetDriverByName("ESRI Shapefile")
     # Create the output shapefile
     outDataSource = outDriver.CreateDataSource(outShapefile)
-    outLayer = outDataSource.CreateLayer("NUTS_Demand", srs, geom_type=ogr.wkbPolygon)
+    geom_typ = inLayer.GetGeomType()
+    geom_typ_dict = {1: ogr.wkbPoint, 2: ogr.wkbLineString, 3: ogr.wkbPolygon}
+    outLayer = outDataSource.CreateLayer("NUTS_Demand", srs,
+                                         geom_type=geom_typ_dict[geom_typ])
     if isinstance(inCSV, str):
         # read CSV file
         ifile = pd.read_csv(inCSV)
@@ -40,9 +48,9 @@ def Excel2shapefile(inShpPath, inCSV, outShpPath):
         ifile = inCSV
     df = ifile.values
     ID = ifile['id']
-    check_null = pd.read_csv(inCSV).notnull().values
+    check_null = ifile.notnull().values
     # read the headers (first row of each column)
-    fieldNames = pd.read_csv(inCSV, nrows=1).columns.values
+    fieldNames = ifile.columns.values
     '''
     ogr field types definition:
     OFTInteger=0, OFTIntegerList=1, OFTReal=2, OFTRealList=3,
@@ -60,11 +68,6 @@ def Excel2shapefile(inShpPath, inCSV, outShpPath):
         outLayer.CreateField(Field)
     # Get the output Layer's Feature Definition
     outLayerDefn = outLayer.GetLayerDefn()
-    # read the input shapefile
-    inShapefile = inShpPath
-    inDriver = ogr.GetDriverByName("ESRI Shapefile")
-    inDataSource = inDriver.Open(inShapefile, 0)
-    inLayer = inDataSource.GetLayer()
     for i in range(0, inLayer.GetFeatureCount()):
         # Get the input Feature
         inFeature = inLayer.GetFeature(i)
