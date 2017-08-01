@@ -35,7 +35,11 @@ def reprojectShp2Shp(inShapefile, outLayerPath,
         if os.path.exists(outputShapefile):
             driver.DeleteDataSource(outputShapefile)
         outDataSet = driver.CreateDataSource(outputShapefile)
-        outLayer = outDataSet.CreateLayer(LayerName, outSpatialRef, geom_type=ogr.wkbLineString)
+        geom_typ = inLayer.GetGeomType()
+        geom_typ_dict = {1: ogr.wkbPoint, 2: ogr.wkbLineString,
+                         3: ogr.wkbPolygon}
+        outLayer = outDataSet.CreateLayer(LayerName, outSpatialRef,
+                                          geom_type=geom_typ_dict[geom_typ])
         # add fields
         inLayerDefn = inLayer.GetLayerDefn()
         for i in range(0, inLayerDefn.GetFieldCount()):
@@ -59,7 +63,8 @@ def reprojectShp2Shp(inShapefile, outLayerPath,
             # set the geometry and attribute
             outFeature.SetGeometry(geom)
             for i in range(0, outLayerDefn.GetFieldCount()):
-                outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(), inFeature.GetField(i))
+                outFeature.SetField(outLayerDefn.GetFieldDefn(i).GetNameRef(),
+                                    inFeature.GetField(i))
             # add the feature to the shapefile
             outLayer.CreateFeature(outFeature)
             # dereference the features and get the next input feature
