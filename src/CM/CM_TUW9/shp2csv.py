@@ -129,8 +129,11 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
         if flag:
             # change projection of the geometry
             geom.Transform(coordTrans)
-        fieldvalues[fid, xIndex] = geom.Centroid().GetX()
-        fieldvalues[fid, yIndex] = geom.Centroid().GetY()
+        # Creating the geom.Centroid() object takes significant time
+        # => Do this just ones
+        geom_Centroid = geom.Centroid()
+        fieldvalues[fid, xIndex] = geom_Centroid.GetX()
+        fieldvalues[fid, yIndex] = geom_Centroid.GetY()
         for item in newFieldList:
             fieldvalues[fid, item] = inFeature.GetField(int(fIndex[item]))
         '''
