@@ -10,7 +10,8 @@ import time
 from osgeo import ogr
 from osgeo import osr
 import pandas as pd
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 '''
@@ -43,7 +44,7 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
     # Create the output shapefile
     outDataSource = outDriver.CreateDataSource(outShapefile)
     geom_typ = inLayer.GetGeomType()
-    geom_typ_dict = {1: ogr.wkbPoint, 3: ogr.wkbPolygon}
+    geom_typ_dict = {1: ogr.wkbPoint, 2: ogr.wkbLineString, 3: ogr.wkbPolygon}
     if geom_typ not in list(geom_typ_dict.keys()):
         raise Exception("Geometry type of the input layer is not supported!")
     outLayer = outDataSource.CreateLayer("Building_lyr_updated", srs,

@@ -14,7 +14,8 @@ from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
 from scipy.ndimage import measurements
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 import CM.CM_TUW20.run_cm as CM20

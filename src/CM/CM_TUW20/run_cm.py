@@ -6,7 +6,8 @@ Created on Jul 26, 2017
 import os
 import time
 import sys
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 from CM.CM_TUW20.indexing import calc_index

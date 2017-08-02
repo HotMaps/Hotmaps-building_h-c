@@ -13,6 +13,8 @@ C:\\python36\python -m pip install --upgrade rasterstats
 C:\\python36\python -m pip install --upgrade osr
 C:\\python36\python -m pip install --upgrade ipyparallel
 C:\\python36\python -m pip install --upgrade jupyter
+C:\\python36\python -m pip install --upgrade  bs4 # beautiful
+C:\\python36\python -m pip install --upgrade  requests
 
 C:\\python36\python -m pip install --upgrade wheel
 C:\\python36\python -m pip install --upgrade Werkzeug 

@@ -7,7 +7,8 @@ import os
 import time
 import sys
 import numpy as np
-path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
 import CM.CM_TUW19.array2raster as A2R
