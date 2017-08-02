@@ -237,14 +237,14 @@ def CoreLoopSumLowRes(HighResM,
                         print(LowResSum.shape[1])
                         print(HighResM.shape[0])
                         print(HighResM.shape[1])
-                        print "....."
+                        print(".....")
                         print(rL)
                         print(cL)
                         print(rHigh)
                         print(cHigh)
-                        print "....."
-                        print LowResSum[rL, cL]
-                        print HighResM[rHigh, cHigh]
+                        print(".....")
+                        print(LowResSum[rL, cL])
+                        print(HighResM[rHigh, cHigh])
                         
                         
     return LowResSum
@@ -299,14 +299,14 @@ def CoreLoopHighRes(LowResM,
                         print(LowResM.shape[1])
                         print(HighResM.shape[0])
                         print(HighResM.shape[1])
-                        print "....."
+                        print(".....")
                         print(rLow)
                         print(cLow)
                         print(rHigh)
                         print(cHigh)
-                        print "....."
-                        print LowResM[rL, cL]
-                        print HighResM[rHigh, cHigh]
+                        print(".....")
+                        print(LowResM[rL, cL])
+                        print(HighResM[rHigh, cHigh])
                         
                         
     return HighResM  

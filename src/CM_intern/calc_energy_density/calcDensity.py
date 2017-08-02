@@ -4,8 +4,8 @@ import sys, os, time, gdal, ogr
 sys.path.insert(0, "../..")
 
 import  CM_intern.common_modules.Subfunctions as SF
+import  CM_intern.common_modules.changeRastExt as cre   # import RastExtMod
 
-import  CM_intern.calc_energy_density.modules.changeRastExt as cre   # import RastExtMod
 import  CM_intern.calc_energy_density.modules.higherRes as hr        # import HighRes
 import  CM_intern.calc_energy_density.modules.query as qu
 import  CM_intern.calc_energy_density.modules.rasterize as ra
@@ -139,7 +139,7 @@ def HeatDensity(r1, r2, r3, r4, r5, r7, rasterOrigin, output):
     arr3 = None
     #print np.sum(result)
     #print time.time() -st
-    a2r.array2raster(output, rasterOrigin, pixelWidth, pixelHeight, datatype, result, noDataValue)
+    a2r.array2rasterfile(output, rasterOrigin, pixelWidth, pixelHeight, datatype, result, noDataValue)
     print(output)
     
     """
@@ -151,18 +151,19 @@ def HeatDensity(r1, r2, r3, r4, r5, r7, rasterOrigin, output):
 
 
   
-def _process1(org_data_path, temp_path, strd_raster_path, r1, noDataValue):  
+def _process1(TobeClippedRasterPath, temp_output_path, baseRasterPath
+              , outputFileName, noDataValue):  
     # cuts SOIL Sealing cuts to same size as population layer, smaller data processing (Values above 100%...)
     
     print("Process 1")
     SaveLayerDict = {}
-    in_rast_path = "%s/%s" %(org_data_path, "SS2012.tif")
     datatype='int16'
-    out_raster_path = "%s/%s" %(temp_path, "temp1.tif")
+    
+    
 
     return_tuple = cre.RastExtMod(
-                        in_rast_path, strd_raster_path, datatype
-                        , out_raster_path, noDataValue, saveAsRaster=False)
+                        TobeClippedRasterPath, baseRasterPath, datatype
+                        , temp_output_path, noDataValue, saveAsRaster=False)
     
     if len(return_tuple) > 1:
         (outRastPath, rasterOrigin2, pxWidth, pxHeight
@@ -170,103 +171,103 @@ def _process1(org_data_path, temp_path, strd_raster_path, r1, noDataValue):
 
                          
         if DEBUG == True:
-            SaveLayerDict["temp1"] = (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out , noDataVal_)
+            SaveLayerDict["temp_ss_pop_cut"] = (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out , noDataVal_)
     else:
         arr_out = return_tuple
     
 
-    arr1 = arr_out
-    data_r1 = np.zeros_like(arr1)
-    idxM = arr1 > 0
-    data_r1[idxM] = arr1[idxM]
-    arr1 = None
-    arr_out = None
-    idxM = None
-    data_r1 = np.minimum(100, data_r1)
-    #data = (arr1<101)*arr1
-    SaveLayerDict["data_r1"] = (r1, rasterOrigin2, pxWidth, pxHeight, datatype, data_r1 , noDataValue)
-    #a2r.array2raster(r1, rasterOrigin, pixelWidth, pixelHeight, datatype, data, noDataValue)
-
+    idxM = arr_out > 0
+    # Soil sealing as for Building-Floor-Area.Proxy
+    data_ss_pop_cut = np.zeros_like(arr_out)
+    data_ss_pop_cut[idxM] = arr_out[idxM]
+    del arr_out, idxM
     
-    print (r1)
-    print (data_r1.shape)
+    data_ss_pop_cut = np.minimum(100, data_ss_pop_cut)
+    data_ss_pop_cut = np.maximum(0, data_ss_pop_cut)
+
+    SaveLayerDict["data_ss_pop_cut"] = (outputFileName, rasterOrigin2, pxWidth, pxHeight, datatype, data_ss_pop_cut , noDataValue)
+    
+    print (outputFileName)
+    print (data_ss_pop_cut.shape)
     return SaveLayerDict
     
-def _process1a(org_data_path, r7, strd_raster_path, noDataValue):
-    
-    # cuts Corine cuts to same size as population layer, smaller data processing (Values above 100%...)
-    # Save as raster layer
-    print("Process 1a")
+def _process1a(TobeClippedRasterPath, outputFileName, base_raster_path
+               , noDataValue, saveAsRaster=False):
+    """
+     cuts Corine Landuse/Landcover to same size as population layer)
+     Processes to Information contained in the CLU files using the 
+     CORINE_LANDCOVER_TRANSFORM_MATRIX
+     Save as raster layer
+    """
+    print("Process Corine Landuse layer")
     
     SaveLayerDict = {}
     #print("Process 1a Corine Landcover data")
-    in_rast_path = "%s/%s" %(org_data_path, "g100_clc12_V18_5.tif")
     datatype='int16'
-    out_raster_path = r7 +"_before"
+    
 
     (outRastPath, rasterOrigin2, pxWidth, pxHeight, DatType, arr_out, noDataVal_) = cre.RastExtMod(
-                        in_rast_path, strd_raster_path, datatype, out_raster_path, noDataValue)
+                        TobeClippedRasterPath, base_raster_path, datatype, outputFileName, noDataValue)
     
     if DEBUG == True:
-        SaveLayerDict["out_raster_path"] = (outRastPath, rasterOrigin2
+        SaveLayerDict["data_CLC_before"] = (outRastPath + "_before", rasterOrigin2
                                   , pxWidth, pxHeight, DatType
                                   , arr_out , noDataVal_)
     
-    #RastExtMod(in_rast_path, strd_raster_path, datatype, out_raster_path, noDataValue)
- 
-    #ds1 = gdal.Open(out_raster_path)
-    #b11 = ds1.GetRasterBand(1)
-    #arr1 = b11.ReadAsArray()
-    
+    # Perform transformation of Corine Data -> Landuse Indikator to Building-Floor-Area.Proxy
     data_CLC = (CORINE_LANDCOVER_TRANSFORM_MATRIX[arr_out] * 100)
-    arr_out = None
-    SaveLayerDict['data_CLC'] = (r7, rasterOrigin2, pxWidth, pxHeight
-                                 , datatype, data_CLC , noDataValue)
-    
-    #a2r.array2raster(r7, rasterOrigin, pixelWidth, pixelHeight, datatype, data_CLC, noDataValue)
+    if DEBUG != True:
+        del arr_out
+    SaveLayerDict['data_CLC'] = (outRastPath, rasterOrigin2
+                                 , pxWidth, pxHeight, datatype
+                                 , data_CLC , noDataValue)
 
-    print (r7)
+    print (outRastPath)
     print (data_CLC.shape) 
     return  SaveLayerDict
 
-def _process2(strd_raster_path, pixelWidth, pixelHeight, r2, noDataValue):
+def _process2(in_raster_path, pixelWidth, pixelHeight
+              , out_raster_path, noDataValue):
     
     # transforms population layer from 1x1 km to 100x100m
-    # saves as raster layer
+    # return array
     print("Process 2")
     st = time.time()
-    in_raster_path = strd_raster_path
     SaveLayerDict = {}
     datatype = 'float32'
     
     (outRastPath, rasterOrigin2, pxWidth, pxHeight
-     , DatType, data_r2, noDataVal_) = hr.HighRes(
+     , DatType, data_pop100, noDataVal_) = hr.HighRes(
                                 in_raster_path, pixelWidth, pixelHeight
-                                , datatype, r2, noDataValue)
+                                , datatype, out_raster_path, noDataValue)
     
     print ("HighRes took: %4.2f sec " % (time.time()-st))
     st1 = time.time()
-
-    a2r.array2raster("%s_before2" %outRastPath, rasterOrigin2
+    if DEBUG:
+        a2r.array2rasterfile("%s_before2" %outRastPath, rasterOrigin2
                                  , pxWidth, pxHeight, DatType
-                                 , data_r2 , noDataVal_)
-    print (np.sum(data_r2))          
-    data_r2 = SOHR.CalcAverageBased(data_r2, 10, 6, 1)
-    print (np.sum(data_r2))
+                                 , data_pop100 , noDataVal_)
+    
+    print (np.sum(data_pop100))          
+    data_pop100 = SOHR.CalcAverageBased(data_pop100, 10, 6, 1)
+    print (np.sum(data_pop100))
     print ("CalcAverageBased took: %4.2f sec " % (time.time()-st1))
     
-    SaveLayerDict["data_r2"] = (outRastPath, rasterOrigin2, pxWidth, pxHeight
-                                , DatType, data_r2 , noDataVal_)
+    SaveLayerDict["data_pop100"] = (outRastPath, rasterOrigin2, pxWidth, pxHeight
+                                , DatType, data_pop100 , noDataVal_)
     
     
-    print (r2)
-    print (data_r2.shape)
+    print (out_raster_path)
+    print (data_pop100.shape)
     return SaveLayerDict
 
-def _process3(arr1, data_CLC, r3, rasterOrigin, pixelWidth,pixelHeight, noDataValue):
+def _process3(data_SS, data_CLC, outputFileName
+              , rasterOrigin, pixelWidth, pixelHeight, noDataValue):
     
 
-    # Calculate sum of soilsailing (100x100 m) for 1x1 km and write that sum on the 100x100 m layer
+    # Calculate sum of soilsailing (100x100 m) corrected by CLC data for 1x1 km 
+    # and write that sum on the 100x100 m layer
+    
     # save new raster layer
     print("Process 3")
     
@@ -274,53 +275,56 @@ def _process3(arr1, data_CLC, r3, rasterOrigin, pixelWidth,pixelHeight, noDataVa
     dataType = 'float32'
 
     #Consider Corine Landcover Data
-    #a2r.array2raster(r3 + "dummy_before",rasterOrigin,pixelWidth,pixelHeight,dataType,arr1,noDataValue)
     if DEBUG == True:
-        SaveLayerDict[r3+"dummy_before"] = (r3 + "dummy_before",rasterOrigin,pixelWidth,pixelHeight
-                                            ,dataType,arr1,noDataValue)
+        SaveLayerDict[outputFileName + "dummy_before"] = (outputFileName + "dummy_before"
+                                                          , rasterOrigin, pixelWidth, pixelHeight
+                                            ,dataType, data_SS, noDataValue)
     
     try:
-        arr2 = arr1 * data_CLC / 100.0
+        data_SS_CLC = data_SS * data_CLC / 100.0
     except:
-        arr2 = arr1
+        data_SS_CLC = data_SS
     
-    #a2r.array2raster(r3 + "dummy_after",rasterOrigin,pixelWidth,pixelHeight,dataType,arr2,noDataValue)
+    
     if DEBUG == True:
-        SaveLayerDict[r3+"dummy_after"] = (r3 + "dummy_after",rasterOrigin,pixelWidth,pixelHeight
-                                           ,dataType,arr2,noDataValue)
+        SaveLayerDict[outputFileName + "dummy_after"] = (outputFileName + "dummy_after"
+                                                         , rasterOrigin, pixelWidth, pixelHeight
+                                           ,dataType, data_SS_CLC, noDataValue)
 
 
     st1 = time.time()
-    (arr_1_km) = SOHR.CoreLoopSumLowRes(arr2, 10)
-    arr1 = None
-    arr2 = None
+    (data_SS_CLC_1_km) = SOHR.CoreLoopSumLowRes(data_SS_CLC, 10)
+    del data_SS, data_SS_CLC
     print("Calc SumLowRes: %4.1f sec " %(time.time() - st1))
     
     
     st1 = time.time()
     #Fast Cython Version
-    data_r3 = SOHR.CalcHighRes(arr_1_km, 10)
+    # Calculate HighResulution File
+    data_SS_CLC = SOHR.CalcHighRes(data_SS_CLC_1_km, 10)
     print("Calc CalcHighRes: %4.1f sec " %(time.time() - st1))
     
 
-    SaveLayerDict["data_r3"] = (r3,rasterOrigin,
+    SaveLayerDict["data_SS_CLC"] = (outputFileName, rasterOrigin,
                           pixelWidth, pixelHeight, dataType,
-                          data_r3, noDataValue)
-    #a2r.array2raster(r3,rasterOrigin,pixelWidth,pixelHeight,dataType,data_r3,noDataValue)
+                          data_SS_CLC, noDataValue)
     
-    print (r3)
-    print (data_r3.shape)
+    print (outputFileName)
+    print (data_SS_CLC.shape)
     return SaveLayerDict
 
-def _process4(org_data_path, temp_path, extent, strd_raster_path, r4, noDataValue):
+def _process4(input_data_path, temp_path, extent, base_raster_path, r4, noDataValue):
     # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
     # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
     # and Energy Demand per Nuts region (vector layer)
-    # Store Energy Demand of corresponding NUTS REGION to each 1x1km feature
+    # Store Information of corresponding NUTS REGION to each 1x1km feature
     SaveLayerDict = {}
     print("Process 4")
-    input_vec_path = "%s/%s" %(org_data_path, "Pop_Nuts.shp")
-    dict_lyr_path = "%s/%s" %(org_data_path, "NUTS_Demand.shp")
+    # 1x1 km raster
+    input_RASTvec_path = "%s/%s" %(input_data_path, "Pop_Nuts.shp")
+    
+    
+    dict_lyr_path = "%s/%s" %(input_data_path, "NUTS_Demand.shp")
     key_field = "NUTS_ID"
     value_field = "ESPON_TOTA"
     out_field_name = "NutsDem"
@@ -328,13 +332,19 @@ def _process4(org_data_path, temp_path, extent, strd_raster_path, r4, noDataValu
     inVectorPath = output_lyr_path
     fieldName = "NutsDem"
     dataType = 'float32'
+    
+    
+    # READ NUTS3 Data
+    dataset = np.genfromtxt("%s/input_data_path, dtype, comments, delimiter, skip_header, skip_footer, converters, missing_values, filling_values, usecols, names, excludelist, deletechars, replace_space, autostrip, case_sensitive, defaultfmt, unpack, usemask, loose, invalid_raise, max_rows)
+    
     st1 = time.time()
-    qu.query(input_vec_path, extent, dict_lyr_path, key_field, value_field, out_field_name, output_lyr_path)
+    qu.query(input_RASTvec_path, extent, dict_lyr_path, key_field, value_field
+             , out_field_name, output_lyr_path)
     print ("Query took: %5.1f sec" % (time.time() - st1))
     st1 = time.time()
     (outRastPath, rasterOrigin2
      , pxWidth, pxHeight, DatType, data_r4, noDataVal_) = ra.rasterize(
-                        strd_raster_path, inVectorPath
+                        base_raster_path, inVectorPath
                         , fieldName, dataType
                         , r4, noDataValue)
     SaveLayerDict["data_r4"] = (outRastPath,rasterOrigin2,
@@ -345,7 +355,7 @@ def _process4(org_data_path, temp_path, extent, strd_raster_path, r4, noDataValu
     
     return SaveLayerDict
 
-def _process5(org_data_path, temp_path, extent, strd_raster_path, r5, noDataValue):
+def _process5(org_data_path, temp_path, extent, base_raster_path, r5, noDataValue):
     # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
     # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
     # and Population per Nuts region (vector layer), same as the one two lines above
@@ -371,7 +381,7 @@ def _process5(org_data_path, temp_path, extent, strd_raster_path, r5, noDataValu
     
     (outRastPath, rasterOrigin2
      , pxWidth, pxHeight, DatType, data_r5, noDataVal_) = ra.rasterize(
-                strd_raster_path, inVectorPath
+                base_raster_path, inVectorPath
                 , fieldName, dataType
                 , r5, noDataValue)
     
@@ -432,19 +442,20 @@ class ClassCalcDensity():
         # Population Layer
         self.strd_raster_path_full = "%s/Population.tif" % self.org_data_path
         # Clipped Raster layer
-        self.strd_raster_path = "%s_clipped.tif" % self.strd_raster_path_full[:-4]
+        self.base_raster_path = "%s_clipped.tif" % self.strd_raster_path_full[:-4]
         
         #outputs
         
         #Soil Sealing and Population
-        self.r1                = self.proc_data_path + os.sep + "ss_pop_cut.tif"
-        self.r2                = self.proc_data_path + os.sep + "Pop_1km_100m.tif"
-        self.r3                = self.proc_data_path + os.sep + "sum_ss_1km.tif"
+        self.ss_cut        = self.proc_data_path + os.sep + "ss_cut.tif"
+        
+        self.pop100                = self.proc_data_path + os.sep + "Pop_1km_100m.tif"
+        self.SSCLU_1km                = self.proc_data_path + os.sep + "CLU_ss_1km.tif"
 
         self.r4                = self.temp_path + os.sep + "temp4.tif"
         self.r5                = self.proc_data_path + os.sep + "Pop_in_Nuts.tif"
-        self.r6                = self.proc_data_path + os.sep + "CorineLU.tif"
-        self.r7                = self.proc_data_path + os.sep + "CorineLU_cut.tif"
+        #self.CLU               = self.proc_data_path + os.sep + "CorineLU.tif"
+        self.CLU_cut           = self.proc_data_path + os.sep + "CorineLU_cut.tif"
         
         self.output            = self.proc_data_path + os.sep + "demand_v2.tif" 
       
@@ -479,11 +490,11 @@ class ClassCalcDensity():
                 os.makedirs(self.temp_path) 
                        
         if 0==1:
-            if os.path.exists(self.r1):
+            if os.path.exists(self.ss_cut):
                 process1 = False
-            if os.path.exists(self.r2):
+            if os.path.exists(self.pop100):
                 process2 = False
-            if os.path.exists(self.r3):
+            if os.path.exists(self.SSCLU_1km):
                 process3 = False
             if os.path.exists(self.r4):
                 process4 = False
@@ -496,15 +507,21 @@ class ClassCalcDensity():
         
         # Clip Raster layer based on list of vector layer features (Selected NUTS3 Regions
         Vctr_key_field = "NUTS_ID"
-        SaveLayerDict_, rasterOrigin, extent = crl.clip_raster_layer(self.strd_raster_path_full
-                                                        , self.strd_raster_path
+        """
+        SaveLayerDict_ contains Key: filename of output raster file (OutputRasterFile)
+                List: [outRastPath, rasterOrigin2, pxWidth
+                , pxHeight, DatType, arr_pop_cut , noDataVal]  
+        """
+        SaveLayerDict_, rasterOrigin, extent = crl.clip_raster_layer_vctr_feat(self.strd_raster_path_full
+                                                        , self.base_raster_path
                                                         , self.strd_vector_path, self.NUTS3_feat_id_LIST
                                                         , Vctr_key_field, self.datatype)
         
         del_keys = []
         for k in list(SaveLayerDict_.keys()):
             LL = SaveLayerDict_[k]
-            a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+            # Export rasterfile
+            a2r.array2rasterfileList(LL)
             del LL
             #SaveLayerDict[k] = SaveLayerDict_[k]
             del_keys.append(k)
@@ -512,22 +529,25 @@ class ClassCalcDensity():
             del SaveLayerDict_[k]
             
     
-        print("Preprepartion took: %4.1f " %(time.time() - start_time))
+        print("Preparation (Clip initial raster file) took: %4.1f " %(time.time() - start_time))
     
         if process1:
             # cuts SOIL Sealing cuts to same size as population layer, smaller data processing (Values above 100%...)
             # Save as raster layer
-            
             st = time.time()
-            print("\nProcess 1 SoilSealing")
+            print("\nProcess 1: Cut SoilSealing")
+            TobeClippedRasterPath = "%s/%s" %(self.org_data_path, "SS2012.tif")
+            TempOutPutFileName = "temp1"
+            temp_output_path = "%s/%s.tif" %(self.temp_path, TempOutPutFileName)
             
-            SaveLayerDict_ = _process1(self.org_data_path, self.temp_path, self.strd_raster_path, self.r1, self.noDataValue)
+            SaveLayerDict_ = _process1(TobeClippedRasterPath, temp_output_path
+                                       , self.base_raster_path, self.ss_cut, self.noDataValue)
             
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 SaveLayerDict[k] = SaveLayerDict_[k]
                 del SaveLayerDict_[k]
-                (r,c) = SaveLayerDict[k][5].shape
+                (row,col) = SaveLayerDict[k][5].shape
             
             elapsed_time = time.time() - st
             print("Process 1 took: %4.1f seconds" %elapsed_time)
@@ -536,82 +556,87 @@ class ClassCalcDensity():
             # cuts Corine cuts to same size as population layer, smaller data processing (Values above 100%...)
             # Save as raster layer
             st = time.time()
-            print("\nProcess 1a Corine Landcover data")
-            SaveLayerDict_ = _process1a(self.org_data_path, self.r7, self.strd_raster_path, self.noDataValue)
+            print("\nProcess 1a: Corine Landcover data")
+            TobeClippedRasterPath = "%s/%s" %(self.org_data_path, "g100_clc12_V18_5.tif")
+            SaveLayerDict_ = _process1a(TobeClippedRasterPath, self.CLU_cut, self.base_raster_path, self.noDataValue)
             
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 SaveLayerDict[k] = SaveLayerDict_[k]
                 del SaveLayerDict_[k]
             
-    
-            
             elapsed_time = time.time() - st
             print("Process 1a took: %4.1f seconds" %elapsed_time)
-            
+        
         if process2:
             # transforms population layer from 1x1 km to 100x100m
             # saves as raster layer
             st = time.time()
             print("\nProcess 2")
             
-            SaveLayerDict_ = _process2(self.strd_raster_path, self.pixelWidth
+            SaveLayerDict_ = _process2(self.base_raster_path, self.pixelWidth
                                        , self.pixelHeight, self.r2, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
-                if k == "data_r2" and EXPORT_LAYERS == True:
-                    print ("Eport %s" %k)
+                if k == "data_pop100" and EXPORT_LAYERS == True:
+                    print ("Export %s" %k)
                     stx = time.time()
                     LL = SaveLayerDict_[k]
-                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    a2r.array2rasterfileList(LL)
                     print (time.time() -stx)
                     # Replace Matrix by Path
-                    SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
+                    SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6])
                 SaveLayerDict[k] = SaveLayerDict_[k]
                 del SaveLayerDict_[k]
                 
             elapsed_time = time.time() - st
             print("Process 2 took: %4.1f seconds" %elapsed_time)
-    
-    
+            
             
         if process3:
-            # Calculate sum of soilsailing (100x100 m) for 1x1 km and write that sum on the 100x100 m layer
-            # save new raster layer
+            # Calculate density function of proxy for heat/floor area distribution
+            # CLU Transformation time  soilsailing (100x100 m) 
+            # -> Calc sum for 1x1 km and write that sum on the 100x100 m layer
+            # return array (optional save new raster layer)
             st = time.time()
             print("\nProcess 3")
             
             #outRasterPath = "%s/%s" %(temp_path, "temp2.tif")
             dataType = 'float32'
             try:
-                data_r1 = SaveLayerDict["data_r1"][5]
-                if (r,c) == data_r1.shape:
-                    arr1 = np.zeros_like(data_r1)
-                    arr1[:, :] = data_r1 
+                data_ss_pop_cut = SaveLayerDict["data_ss_pop_cut"][5]
+                if (row,col) == data_ss_pop_cut.shape:
+                    
+                    if DEBUG:
+                        # create copy to ensure that data of data_ss_pop_cut are not changed
+                        # -> which are later exported for debug reasons
+                        data_ss_pop_cut_ = data_ss_pop_cut.copy() 
+                    else: 
+                        data_ss_pop_cut_ = data_ss_pop_cut
+                        
                     reload_data = False
                 else:
                     reload_data = True
             except:
                 reload_data = True
+            
             if reload_data == True:
-                input_value_raster = self.r1
-                arr1 = SF.rrl(input_value_raster, data_type=dataType)
-                """ds1 = gdal.Open(input_value_raster)
-                b11 = ds1.GetRasterBand(1)
-                arr1 = b11.ReadAsArray().astype(dataType)
-                """
+                data_ss_pop_cut_ = SF.read_raster_layer(self.ss_cut, data_type=dataType)
+
             data_CLC = SaveLayerDict["data_CLC"][5]
             
-            SaveLayerDict_ = _process3(arr1, data_CLC, self.r3, rasterOrigin
+            SaveLayerDict_ = _process3(data_ss_pop_cut_, data_CLC
+                                       , self.SSCLU_1km, rasterOrigin
                                        , self.pixelWidth, self.pixelHeight, self.noDataValue)
-            del arr1
+            if DEBUG:
+                del data_ss_pop_cut_
             for k in list(SaveLayerDict_.keys()):
                 print (k)
-                if k == "data_r3" and EXPORT_LAYERS == True:
+                if k == "data_SS_CLC" and EXPORT_LAYERS == True:
                     print ("Eport %s" %k)
                     stx = time.time()
                     LL = SaveLayerDict_[k]
-                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    a2r.array2rasterfileList(LL)
                     print (time.time() -stx)
                     # Replace Matrix by Path
                     SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6])  
@@ -622,23 +647,30 @@ class ClassCalcDensity():
     
             print("Process 3 took: %4.1f seconds" %elapsed_time3)
         
+            
+        
+    
+    
+            
+        
+        
         if process4:
             # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
             # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
             # and Energy Demand per Nuts region (vector layer)
             # Store Energy Demand of corresponding NUTS REGION to each 1x1km feature
             st = time.time()
-            print("\nProcess 4")
+            print("\nProcess 4: Transform NUTS3 Info to 1x1km")
             
             SaveLayerDict_ = _process4(self.org_data_path, self.temp_path, extent
-                                       , self.strd_raster_path, self.r4, self.noDataValue)
+                                       , self.base_raster_path, self.r4, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 if k == "data_r4" and EXPORT_LAYERS == True:
                     print ("Eport %s" %k)
                     stx = time.time()
                     LL = SaveLayerDict_[k]
-                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    a2r.array2rasterfileList(LL)
                     print (time.time() -stx)
                     # Replace Matrix by Path
                     SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
@@ -656,14 +688,14 @@ class ClassCalcDensity():
             st = time.time()
             print("\nProcess 5") 
             SaveLayerDict_ = _process5(self.org_data_path, self.temp_path
-                                       , extent, self.strd_raster_path, self.r5, self.noDataValue)
+                                       , extent, self.base_raster_path, self.r5, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 if k == "data_r5" and EXPORT_LAYERS == True:
                     print ("Eport %s" %k)
                     stx = time.time()
                     LL = SaveLayerDict_[k]
-                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    a2r.array2rasterfile(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
                     print (time.time() -stx)
                     # Replace Matrix by Path
                     SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
@@ -676,8 +708,8 @@ class ClassCalcDensity():
                            
         print ("Outputfile: %s" % self.output)
         st = time.time()
-        HeatDensity(data_r1, SaveLayerDict["data_r2"][5]
-                , SaveLayerDict["data_r3"][5]
+        HeatDensity(data_ss_pop_cut, SaveLayerDict["data_pop100"][5]
+                , SaveLayerDict["data_SS_CLC"][5]
                 , SaveLayerDict["data_r4"][5]
                 , SaveLayerDict["data_r5"][5]
                 , data_CLC, rasterOrigin, self.output)
@@ -698,7 +730,7 @@ class ClassCalcDensity():
                 print ("already exported")
             else:
                 try:
-                    a2r.array2raster(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
+                    a2r.array2rasterfile(LL[0], LL[1], LL[2], LL[3], LL[4], LL[5] , LL[6])
                 except Exception as e:
                     print (e)
             del SaveLayerDict[k]

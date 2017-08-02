@@ -4,9 +4,9 @@ CREATE_MEM_LAYER = False
 SET_SPATIAL_FILTE = True
 VERBOSE = False
 #@profile
-def query(input_vec_path, extent, dict_lyr_path, key_field, value_field, out_field_name, output_lyr_path):
+def query(input_Smallvec_path, extent, dict_lyr_path, key_field, value_field, out_field_name, output_lyr_path):
     # Check for correct inputs
-    if not (input_vec_path[-4:]==".shp" and output_lyr_path[-4:]==".shp" and dict_lyr_path[-4:]==".shp"):
+    if not (input_Smallvec_path[-4:]==".shp" and output_lyr_path[-4:]==".shp" and dict_lyr_path[-4:]==".shp"):
         print("wrong input/output layers!")
         return
     
@@ -38,7 +38,7 @@ def query(input_vec_path, extent, dict_lyr_path, key_field, value_field, out_fie
     dictDataSource = None
     
     # Get the input Layer
-    inShapefile = input_vec_path
+    inShapefile = input_Smallvec_path
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
     inDataSource = inDriver.Open(inShapefile, 0)
     inLayer = inDataSource.GetLayer()
