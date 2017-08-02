@@ -38,6 +38,14 @@ def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_,
     lowIndexX = int((maxy-fmaxy)/resolution)
     upIndexY = lowIndexY + int((fmaxx-fminx)/resolution)
     upIndexX = lowIndexX + int((fmaxy-fminy)/resolution)
+    
+    # Andreas, comment:
+    # Wouldn'd a simple transformation result in a better code
+    # Check results! Haven't checked yet
+    # Try not to use loops with Python
+    # upIndexY = ceil((fmaxx - minx) / resolution)
+    # upIndexX = ceil((maxy - fminy) / resolution)
+    
     while (minx + upIndexY*resolution) < fmaxx:
         upIndexY = upIndexY + 1
     while (maxy - upIndexX*resolution) > fminy:
