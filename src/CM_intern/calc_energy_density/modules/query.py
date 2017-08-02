@@ -1,18 +1,24 @@
 from osgeo import ogr, osr
 import os
+import numpy as np
 CREATE_MEM_LAYER = False
 SET_SPATIAL_FILTE = True
 VERBOSE = False
 #@profile
-def query(input_Smallvec_path, extent, dict_lyr_path, key_field, value_field, out_field_name, output_lyr_path):
+def query(input_1x1vec_path, extent, NUTS_lyr_path, key_field
+          , value_field, out_field_name, output_lyr_path):
     # Check for correct inputs
-    if not (input_Smallvec_path[-4:]==".shp" and output_lyr_path[-4:]==".shp" and dict_lyr_path[-4:]==".shp"):
+    if not (input_1x1vec_path[-4:]==".shp" 
+            and output_lyr_path[-4:]==".shp" 
+            and NUTS_lyr_path[-4:]==".shp"):
         print("wrong input/output layers!")
         return
     
     # Get the dict_feat layer & copy values into the dictionary
+    # Walk through NUTS Layer and check whether or not NUTS Region lies within 
+    # extent. If so, add NUTS Region to dictionary
     dictDriver = ogr.GetDriverByName("ESRI Shapefile")
-    dictDataSource = dictDriver.Open(dict_lyr_path, 0)
+    dictDataSource = dictDriver.Open(NUTS_lyr_path, 0)
     dictLayer = dictDataSource.GetLayer()    
     dict_feat = {}
     for i in range(0, dictLayer.GetFeatureCount()):
@@ -23,22 +29,24 @@ def query(input_Smallvec_path, extent, dict_lyr_path, key_field, value_field, ou
         if x>extent[0] and x<extent[1]:
             y = geom.Centroid().GetY()
             if y>extent[2] and y<extent[3]:
-                temp1 = inFeature.GetField(key_field)
-                temp2 = inFeature.GetField(value_field)
+                NUTS_ID = inFeature.GetField(key_field)
+                NUTS_ROW_ID = inFeature.GetField(value_field)
                 
-                if temp1 in dict_feat:
-                    if not (temp2 is None):
-                        dict_feat[temp1] += temp2
+                if NUTS_ID in dict_feat:
+                    raise()
+                    if not (NUTS_ROW_ID is None):
+                        dict_feat[NUTS_ID] += NUTS_ROW_ID
                 else:
-                    if temp2 is None:
-                        dict_feat[temp1] = 0
+                    if NUTS_ROW_ID is None:
+                        dict_feat[NUTS_ID] = 0
                     else:
-                        if VERBOSE == True: print (temp1)
-                        dict_feat[temp1] = temp2      
+                        if VERBOSE == True: print (NUTS_ID)
+                        dict_feat[NUTS_ID] = NUTS_ROW_ID      
     dictDataSource = None
     
     # Get the input Layer
-    inShapefile = input_Smallvec_path
+    # 1x1 km layer
+    inShapefile = input_1x1vec_path
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
     inDataSource = inDriver.Open(inShapefile, 0)
     inLayer = inDataSource.GetLayer()
@@ -104,45 +112,51 @@ def query(input_Smallvec_path, extent, dict_lyr_path, key_field, value_field, ou
 
     # Get the output Layer's Feature Definition
     outLayerDefn = outLayer.GetLayerDefn()
-
+      
     # Add features to the ouput Layer
     if VERBOSE == True: print (inLayer.GetFeatureCount())
     j = 0
-    dict_feat2 = {}
-    for inFeature in inLayer:
+    # Walk through each feature of the 1x1km shape file which is within the 
+    # defined extent
+    MapNuts3Array = np.zeros(inLayer.GetFeatureCount(), dtype="uint32")
+    out_field_name = outLayerDefn.GetFieldDefn(0).GetNameRef()
+    for i, inFeature in enumerate(inLayer):
         # Get the input Feature
         key_field_name = inFeature.GetField(key_field)
-        
-            
         if str(key_field_name) in dict_feat:
-            if VERBOSE == True: dict_feat2[key_field_name] = ""
-            geom = inFeature.GetGeometryRef()
-            x = geom.Centroid().GetX()
-            if x>extent[0] and x<extent[1]:
-                y = geom.Centroid().GetY()
-                if y>extent[2] and y<extent[3]:
-                    j += 1
-                    # Create output Feature
-                    outFeature = ogr.Feature(outLayerDefn)
-                    # Add field values from input Layer
-                    outFeature.SetField(outLayerDefn.GetFieldDefn(0).GetNameRef(), dict_feat[inFeature.GetField(key_field)])
-                    # Set geometry as centroid
-                    geom = inFeature.GetGeometryRef()
-                    outFeature.SetGeometry(geom.Clone())
-                    # Add new feature to output Layer
-                    outLayer.CreateFeature(outFeature)
+            MapNuts3Array[i] = dict_feat[key_field_name]
+            
+            #if VERBOSE == True: dict_feat2[key_field_name] = ""
+
+            #geom_Centroid = geom.Centroid() 
+            #x = geom_Centroid.GetX()
+            #if x>extent[0] and x<extent[1]:
+            #    y = geom_Centroid.GetY()
+            #    if y>extent[2] and y<extent[3]:
+            j += 1
+            # Create output Feature
+            outFeature = ogr.Feature(outLayerDefn)
+            # Add field values from input Layer
+            outFeature.SetField(out_field_name, dict_feat[key_field_name])
+            # Set geometry as centroid
+            outFeature.SetGeometry(inFeature.GetGeometryRef().Clone())
+            # Add new feature to output Layer
+            outLayer.CreateFeature(outFeature)
+            
                     
-                        
+                     
     inFeature = None
     outFeature = None
     if VERBOSE == True: 
-        print ("hits: %i" % j) 
-        for key in dict_feat2.keys():
+        print ("hits: %i out of %i" % (j, inLayer.GetFeatureCount())) 
+        """for key in dict_feat2.keys():
             print (key)
-          
+        """  
     # Save and close DataSources
     inDataSource = None
     outDataSource = None
+    
+    return MapNuts3Array
     
 if __name__ == "__main__":
     

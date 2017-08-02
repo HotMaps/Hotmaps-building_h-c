@@ -1,6 +1,19 @@
 import gdal, ogr, os, osr, time
 import numpy as np
+import sys
+
+
+
 import CM_intern.common_modules.array2raster as a2r
+try:
+    if sys.maxsize > 2**32:
+        # run_64bit_python =True:
+        import CM_intern.calc_energy_density.modules.cython_files.SumOfHighRes_64 as HRcFunction
+    else:
+        import CM_intern.calc_energy_density.modules.cython_files.SumOfHighRes_32 as HRcFunction
+except:
+    print("SumOfHighRes in\nCM_intern.calc_energy_density.modules.cython_files"+
+          "\nNeeds to compiled first")
 '''
 This code considers the input raster with resolution of 1km2 and outputs a raster with 100m2 resolution. in case, different configuration in term of resolution
 is required, the corresponding factors should be set again (x_res_factor and y_res_factor)
@@ -9,7 +22,7 @@ pixelWidth and pixelHeight are used for the output raster file.
 '''
 
 def HighRes(inRasterPath, pixelWidth, pixelHeight
-            , dataType, outRasterPath, noDataValue, saveAsRaster= True):
+            , dataType, outRasterPath, noDataValue, saveAsRaster=False):
     inDatasource = gdal.Open(inRasterPath)
     gt = inDatasource.GetGeoTransform()
     minx = gt[0]
@@ -18,6 +31,9 @@ def HighRes(inRasterPath, pixelWidth, pixelHeight
     miny = maxy + gt[5] * inDatasource.RasterYSize
     b = inDatasource.GetRasterBand(1)
     arr = b.ReadAsArray()
+    arr_out = HRcFunction.CalcHighRes(arr, 10)
+    inDatasource = None
+    """
     x_res = arr.shape[0]
     y_res = arr.shape[1]
     x_res_factor = 10
@@ -32,7 +48,8 @@ def HighRes(inRasterPath, pixelWidth, pixelHeight
                 for n in range(y_res_factor):
                     arr_out[x_res_factor*i+m , y_res_factor*j+n] = arr[i,j]
     
-    inDatasource = None
+    
+    """
     rasterOrigin = (minx,maxy)
     if saveAsRaster == True:
         a2r.array2rasterfile(outRasterPath, rasterOrigin, pixelWidth
