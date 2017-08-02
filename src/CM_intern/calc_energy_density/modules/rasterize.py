@@ -43,7 +43,7 @@ def rasterize(inRasterPath, inVectorPath, fieldName, dataType
     inFeature = None   
     # rev_array = arr_out[::-1] # reverse array so the tif looks like the array
     if saveAsRaster == True:
-        a2r.array2raster(outRasterPath, rasterOrigin, pixelWidth
+        a2r.array2rasterfile(outRasterPath, rasterOrigin, pixelWidth
                          , pixelHeight, dataType
                          , arr_out, noDataValue) # convert array to raster
         

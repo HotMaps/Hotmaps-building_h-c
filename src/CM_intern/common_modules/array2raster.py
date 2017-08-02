@@ -1,7 +1,5 @@
 import gdal, osr
-
-
-
+import sys
 '''
 To create the raster consider following data types:
 
@@ -19,7 +17,13 @@ GDT_CFloat32    Complex Float32
 GDT_CFloat64    Complex Float64
 '''
 
-def array2raster(outRasterPath,rasterOrigin,pixelWidth,pixelHeight,dataType,array,noDataValue):
+
+def array2rasterfile(outRasterPath, rasterOrigin,
+                     pixelWidth, pixelHeight, 
+                     dataType, array, noDataValue):
+    """ 
+    Exports array to raster file
+    """
     # conversion of data types from numpy to gdal
     dict_varTyp ={"int8" : gdal.GDT_Byte, "int16" : gdal.GDT_Int16, "int32" : gdal.GDT_Int32, "uint16" : gdal.GDT_UInt16, "uint32" : gdal.GDT_UInt32, "float32" : gdal.GDT_Float32, "float64" : gdal.GDT_Float64}
     cols = array.shape[1]
@@ -38,3 +42,19 @@ def array2raster(outRasterPath,rasterOrigin,pixelWidth,pixelHeight,dataType,arra
     outRaster.GetRasterBand(1).SetNoDataValue(noDataValue)
     outRaster.GetRasterBand(1).WriteArray(array)
     outRaster.FlushCache()
+    
+    return
+
+
+
+def array2rasterfileList(InputDataList):
+    if len(InputDataList) != 7:
+        print("Error: List with 7 datasets required: ")
+        print("outRasterPath, rasterOrigin,pixelWidth,\npixelHeight," 
+               +" dataType, array, noDataValue")
+        print("End script -> Done")
+        sys.exit()
+    array2rasterfile(InputDataList[0], InputDataList[1]
+                     , InputDataList[2], InputDataList[3]
+                     , InputDataList[4], InputDataList[5] , InputDataList[6])
+    

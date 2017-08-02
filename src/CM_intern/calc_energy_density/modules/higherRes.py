@@ -35,7 +35,7 @@ def HighRes(inRasterPath, pixelWidth, pixelHeight
     inDatasource = None
     rasterOrigin = (minx,maxy)
     if saveAsRaster == True:
-        a2r.array2raster(outRasterPath, rasterOrigin, pixelWidth
+        a2r.array2rasterfile(outRasterPath, rasterOrigin, pixelWidth
                          , pixelHeight, dataType
                          , arr_out, noDataValue) # convert array to raster
         
