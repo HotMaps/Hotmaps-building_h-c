@@ -1,6 +1,7 @@
 import numpy as np
 import shutil
 import sys, os, time, gdal, ogr
+import csv
 sys.path.insert(0, "../..")
 
 import  CM_intern.common_modules.Subfunctions as SF
@@ -139,7 +140,9 @@ def HeatDensity(r1, r2, r3, r4, r5, r7, rasterOrigin, output):
     arr3 = None
     #print np.sum(result)
     #print time.time() -st
-    a2r.array2rasterfile(output, rasterOrigin, pixelWidth, pixelHeight, datatype, result, noDataValue)
+    a2r.array2rasterfile(output, rasterOrigin
+                         , pixelWidth, pixelHeight
+                         , datatype, result, noDataValue)
     print(output)
     
     """
@@ -235,7 +238,7 @@ def _process2(in_raster_path, pixelWidth, pixelHeight
     st = time.time()
     SaveLayerDict = {}
     datatype = 'float32'
-    
+    print("Start hr.HighRes C-Function")
     (outRastPath, rasterOrigin2, pxWidth, pxHeight
      , DatType, data_pop100, noDataVal_) = hr.HighRes(
                                 in_raster_path, pixelWidth, pixelHeight
@@ -313,20 +316,22 @@ def _process3(data_SS, data_CLC, outputFileName
     print (data_SS_CLC.shape)
     return SaveLayerDict
 
-def _process4(input_data_path, temp_path, extent, base_raster_path, r4, noDataValue):
+def _process4(input_data_path, temp_path, extent
+              , base_raster_path
+              , r4, noDataValue):
     # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
-    # Information stored in Pop_Nuts.shape: NUmber of population per 1km and corresponding NUTS3 region
+    # Information stored in 1x1kmDensity_Nuts.shape: Number of population per 1km and corresponding NUTS3 region
     # and Energy Demand per Nuts region (vector layer)
     # Store Information of corresponding NUTS REGION to each 1x1km feature
     SaveLayerDict = {}
     print("Process 4")
     # 1x1 km raster
-    input_RASTvec_path = "%s/%s" %(input_data_path, "Pop_Nuts.shp")
+    input_RASTvec_path = "%s/%s" %(input_data_path, "1x1kmDensity_Nuts.shp")
     
     
-    dict_lyr_path = "%s/%s" %(input_data_path, "NUTS_Demand.shp")
+    dict_lyr_path = "%s/%s" %(input_data_path, "NUTS3.shp")
     key_field = "NUTS_ID"
-    value_field = "ESPON_TOTA"
+    value_field = "IDNUMBER"
     out_field_name = "NutsDem"
     output_lyr_path =  temp_path + os.sep + "temp3.shp"
     inVectorPath = output_lyr_path
@@ -335,10 +340,29 @@ def _process4(input_data_path, temp_path, extent, base_raster_path, r4, noDataVa
     
     
     # READ NUTS3 Data
-    dataset = np.genfromtxt("%s/input_data_path, dtype, comments, delimiter, skip_header, skip_footer, converters, missing_values, filling_values, usecols, names, excludelist, deletechars, replace_space, autostrip, case_sensitive, defaultfmt, unpack, usemask, loose, invalid_raise, max_rows)
+    
+    Nuts3DatafileSet = "%s/NUTS3_data.csv" % input_data_path
+    with open(Nuts3DatafileSet, 'r') as csvfile:
+        datareader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for i, row in enumerate(datareader):
+            if i == 0:
+                VarNames = row
+            elif i == 1:
+                VarType= row
+                break 
+        dtype_ = []
+        for i in range(len(VarNames)):
+            if VarType[i].startswith("S") and sys.version_info[0] == 3 :
+                VarType[i] = VarType[i].replace("S", "U")
+            dtype_.append((VarNames[i], VarType[i]))
+
+
+    NUTS3DataSet = np.genfromtxt(Nuts3DatafileSet, dtype_
+                            , delimiter=","
+                            , skip_header=2)
     
     st1 = time.time()
-    qu.query(input_RASTvec_path, extent, dict_lyr_path, key_field, value_field
+    MapNuts3Array = qu.query(input_RASTvec_path, extent, dict_lyr_path, key_field, value_field
              , out_field_name, output_lyr_path)
     print ("Query took: %5.1f sec" % (time.time() - st1))
     st1 = time.time()
@@ -346,14 +370,23 @@ def _process4(input_data_path, temp_path, extent, base_raster_path, r4, noDataVa
      , pxWidth, pxHeight, DatType, data_r4, noDataVal_) = ra.rasterize(
                         base_raster_path, inVectorPath
                         , fieldName, dataType
-                        , r4, noDataValue)
+                        , r4, noDataValue, saveAsRaster=False)
+    data_r4 = data_r4.astype("int")
     SaveLayerDict["data_r4"] = (outRastPath,rasterOrigin2,
                           pxWidth, pxHeight, DatType,
                           data_r4, noDataVal_)
+    
+    data_array_ = np.zeros_like(data_r4)
+    for i in range(4, len(NUTS3DataSet.dtype)):
+        data_array_= NUTS3DataSet[VarNames[i]][data_r4]
+        SaveLayerDict["data_%s" % VarNames[i]] = ("%s/%s.tiff" %(os.path.dirname(outRastPath), VarNames[i])
+                          , rasterOrigin2,
+                          pxWidth, pxHeight, DatType,
+                          data_array_, noDataVal_) 
     print ("Rasterize took: %5.1f sec" % (time.time() - st1))
     print (data_r4.shape)
-    
-    return SaveLayerDict
+    #sys.exit()
+    return SaveLayerDict, NUTS3DataSet, MapNuts3Array
 
 def _process5(org_data_path, temp_path, extent, base_raster_path, r5, noDataValue):
     # takes vector layer (vectors are squares (1x1km - same size as population raster layer))
@@ -365,6 +398,7 @@ def _process5(org_data_path, temp_path, extent, base_raster_path, r5, noDataValu
     print("Process 5")
     input_vec_path = "%s/%s" %(org_data_path, "Pop_Nuts.shp")
     dict_lyr_path = "%s/%s" %(org_data_path, "Pop_Nuts.shp")
+    
     key_field = "NUTS_ID"
     value_field =  "GEOSTAT_gr"
     out_field_name = "NutsPop"
@@ -449,15 +483,15 @@ class ClassCalcDensity():
         #Soil Sealing and Population
         self.ss_cut        = self.proc_data_path + os.sep + "ss_cut.tif"
         
-        self.pop100                = self.proc_data_path + os.sep + "Pop_1km_100m.tif"
-        self.SSCLU_1km                = self.proc_data_path + os.sep + "CLU_ss_1km.tif"
+        self.pop100    = self.proc_data_path + os.sep + "Pop_1km_100m.tif"
+        self.SSCLU_1km = self.proc_data_path + os.sep + "CLU_ss_1km.tif"
 
-        self.r4                = self.temp_path + os.sep + "temp4.tif"
-        self.r5                = self.proc_data_path + os.sep + "Pop_in_Nuts.tif"
+        self.r4        = self.temp_path + os.sep + "temp4.tif"
+        self.r5        = self.proc_data_path + os.sep + "Pop_in_Nuts.tif"
         #self.CLU               = self.proc_data_path + os.sep + "CorineLU.tif"
-        self.CLU_cut           = self.proc_data_path + os.sep + "CorineLU_cut.tif"
+        self.CLU_cut   = self.proc_data_path + os.sep + "CorineLU_cut.tif"
         
-        self.output            = self.proc_data_path + os.sep + "demand_v2.tif" 
+        self.output    = self.proc_data_path + os.sep + "demand_v2.tif" 
       
       
         # array2raster output datatype
@@ -473,10 +507,17 @@ class ClassCalcDensity():
 
         
         del_temp_path    = True
+        process1           = False
+        process1a          = False
+        process2           = False
+        process3           = False
+        
+        #"""
         process1           = True
         process1a          = True
         process2           = True
         process3           = True
+        #"""
         process4         = True
         process5        = True
     
@@ -575,7 +616,7 @@ class ClassCalcDensity():
             print("\nProcess 2")
             
             SaveLayerDict_ = _process2(self.base_raster_path, self.pixelWidth
-                                       , self.pixelHeight, self.r2, self.noDataValue)
+                                       , self.pixelHeight, self.pop100, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 if k == "data_pop100" and EXPORT_LAYERS == True:
@@ -662,8 +703,10 @@ class ClassCalcDensity():
             st = time.time()
             print("\nProcess 4: Transform NUTS3 Info to 1x1km")
             
-            SaveLayerDict_ = _process4(self.org_data_path, self.temp_path, extent
-                                       , self.base_raster_path, self.r4, self.noDataValue)
+            (SaveLayerDict_ , NUTS3DataSet, MapNuts3Array
+                ) = _process4(self.org_data_path, self.temp_path, extent
+                                       , self.base_raster_path, self.r4
+                                       , self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
                 print (k)
                 if k == "data_r4" and EXPORT_LAYERS == True:
@@ -687,6 +730,7 @@ class ClassCalcDensity():
             # Population of corresponding NUTS 3 REGION to each 1x1km feature 
             st = time.time()
             print("\nProcess 5") 
+            """
             SaveLayerDict_ = _process5(self.org_data_path, self.temp_path
                                        , extent, self.base_raster_path, self.r5, self.noDataValue)
             for k in list(SaveLayerDict_.keys()):
@@ -701,11 +745,13 @@ class ClassCalcDensity():
                     SaveLayerDict_[k] = (LL[0], LL[1], LL[2], LL[3], LL[4], LL[0] , LL[6]) 
                 SaveLayerDict[k] = SaveLayerDict_[k]
                 del SaveLayerDict_[k]
-    
+            """
             elapsed_time = time.time() - st
+            
+            SaveLayerDict["data_r5"] = SaveLayerDict["data_POP2012"] 
             print("Process 5 took: %4.1f seconds" %elapsed_time)
     
-                           
+                       
         print ("Outputfile: %s" % self.output)
         st = time.time()
         HeatDensity(data_ss_pop_cut, SaveLayerDict["data_pop100"][5]
@@ -751,4 +797,19 @@ class ClassCalcDensity():
     
 if __name__ == "__main__":
     
-    CCD = ClassCalcDensity()
+
+    
+    print(sys.version_info)
+    pr_path = "/home/simulant/workspace/project/Hotmaps_DATA/heat_density_map/"
+    
+    
+    #Nuts3 Regions
+    NUTS3_feat_id_LIST = [14]  # 14refers to the feature ID of Vienna
+    NUTS3_feat_id_LIST = range(0,20000)  # 14refers to the feature ID of Vienna
+    NUTS3_feat_id_LIST = range(12,15)
+    NUTS3_feat_id_LIST = [14]
+    CD = ClassCalcDensity(pr_path)
+    CD.main_process(NUTS3_feat_id_LIST)
+
+    
+    print("Done!")
