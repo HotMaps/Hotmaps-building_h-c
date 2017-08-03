@@ -19,7 +19,7 @@ inputs:
 '''
 
 
-def Excel2shapefile(inShpPath, inCSV, outShpPath):
+def Excel2shapefile(inShpPath, inCSV, outShpPath, OutputSRS=3035):
     # read the input shapefile
     inShapefile = inShpPath
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
@@ -27,7 +27,7 @@ def Excel2shapefile(inShpPath, inCSV, outShpPath):
     inLayer = inDataSource.GetLayer()
     # set CRS
     srs = osr.SpatialReference()
-    srs.ImportFromEPSG(3035)
+    srs.ImportFromEPSG(OutputSRS)
     # Create the output Layer
     outShapefile = outShpPath
     outDriver = ogr.GetDriverByName("ESRI Shapefile")
@@ -96,7 +96,7 @@ def Excel2shapefile(inShpPath, inCSV, outShpPath):
 
 if __name__ == "__main__":
     start = time.time()
-    inCSV = "/home/simulant/ag_lukas/personen/Mostafa/ESPON/New_Complete_incl_ISI_final_NUTS0.csv"
+    inCSV = "/home/simulant/ag_lukas/personen/Mostafa/ESPON/New_Complete_incl_ISI_final.csv"
     #inCSV = "/home/simulant/ag_lukas/personen/Mostafa/ESPON/Book1.csv"
     inShpPath = "/home/simulant/ag_lukas/personen/Mostafa/ESPON/input.csv.shp"
     outShpPath = "/home/simulant/ag_lukas/personen/Mostafa/ESPON/Data.shp"
