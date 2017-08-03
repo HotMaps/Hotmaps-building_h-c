@@ -7,7 +7,7 @@ from osgeo import ogr
 from PIL import Image, ImageDraw
 import numpy as np
 import pandas as pd
-path = os.path.dirname(os.path.dirname(__file__))
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if path not in sys.path:
     sys.path.append(path)
 from CM_intern import csv2shp
@@ -15,7 +15,7 @@ import CM.CM_TUW19.run_cm as CM19
 
 
 def saveCSVorSHP(feat, demand, features_path, output_dir, prefix='',
-                 save2csv=None, save2shp=None):
+                 save2csv=None, save2shp=None, OutputSRS=3035):
     df = pd.DataFrame()
     df['id'] = np.array(feat)
     df['Sum'] = np.array(demand)
@@ -24,12 +24,12 @@ def saveCSVorSHP(feat, demand, features_path, output_dir, prefix='',
     if save2csv:
         df.to_csv(csv_path)
     if save2shp:
-        csv2shp.Excel2shapefile(features_path, df, outShpPath)
+        csv2shp.Excel2shapefile(features_path, df, outShpPath, OutputSRS)
 
 
 def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
                 save2csv=None, save2raster=None, save2shp=None,
-                unit_multiplier=None, return_array=False):
+                unit_multiplier=None, return_array=False, OutputSRS=3035):
     '''
     Clips a raster (given as either a gdal.Dataset or as a numpy.array
     instance) to a polygon layer provided by a Shapefile (or other vector
@@ -223,11 +223,11 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
                             str(fid) + '.tif'
             CM19.main(outRasterPath, gt3, str(clip_complete.dtype),
                       clip_complete, 0)
-        if save2csv or save2shp:
-            saveCSVorSHP(feat, demand, features_path, output_dir, shpName,
-                         save2csv, save2shp)
-        if return_array:
-            return clip_complete, gt3
+    if save2csv or save2shp:
+        saveCSVorSHP(feat, demand, features_path, output_dir, shpName,
+                     save2csv, save2shp, OutputSRS=OutputSRS)
+    if return_array:
+        return clip_complete, gt3
 
 if __name__ == '__main__':
     start = time.time()
