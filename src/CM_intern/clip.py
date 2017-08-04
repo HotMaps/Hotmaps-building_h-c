@@ -1,17 +1,20 @@
 import os
 import sys
 import time
+from docutils.io import InputError
 from osgeo import gdal
 from osgeo import gdalnumeric
 from osgeo import ogr
-from PIL import Image, ImageDraw
+from PIL import Image
+from PIL import ImageDraw
 import numpy as np
 import pandas as pd
-path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
-from CM_intern import csv2shp
 import CM.CM_TUW19.run_cm as CM19
+import CM.CM_TUW21.run_cm as CM21
 
 
 def saveCSVorSHP(feat, demand, features_path, output_dir, prefix='',
@@ -24,7 +27,7 @@ def saveCSVorSHP(feat, demand, features_path, output_dir, prefix='',
     if save2csv:
         df.to_csv(csv_path)
     if save2shp:
-        csv2shp.Excel2shapefile(features_path, df, outShpPath, OutputSRS)
+        CM21.main(features_path, df, outShpPath, OutputSRS=OutputSRS)
 
 
 def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
@@ -36,10 +39,10 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
     layer). If a numpy.array is given, a "GeoTransform" must be provided
     (via dataset.GetGeoTransform() in GDAL). Returns an array. Clip features
     can be multi-part geometry and with interior ring inside them.
-    Modified version of the code provided in:
-    karthur.org/2015/clipping-rasters-in-python.html
-
-    #clip-a-geotiff-with-shapefile
+    
+    The code supports most of raster and clip vector arrangements; however,
+    it does not support cases in which clip vector extent (envlope of it) goes
+    beyond more than 2 sides of the raster.
 
     Arguments:
         rast               A gdal.Dataset or a NumPy array
@@ -62,10 +65,7 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
     def world_to_pixel(geo_matrix, x, y):
         '''
         Uses a gdal geomatrix (gdal.GetGeoTransform()) to calculate
-        the pixel location of a geospatial coordinate; from:
-        http://pcjericks.github.io/py-gdalogr-cookbook/raster_layers.html
-
-        clip-a-geotiff-with-shapefile
+        the pixel location of a geospatial coordinate;
         '''
         ulX = geo_matrix[0]
         ulY = geo_matrix[3]
@@ -77,6 +77,7 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
         line = int((ulY - y) / xDist)
         return (pixel, line)
 
+    clip_complete = None
     # get shapefile name
     shpName = features_path.replace('\\', '/')
     shpName = shpName.split('/')[-1][0:-4]
@@ -90,7 +91,7 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
     if not isinstance(rast, np.ndarray):
         gt = rast.GetGeoTransform()
         rast = rast.ReadAsArray()
-
+    xRes, yRes = rast.shape
     # Create an OGR layer from a boundary shapefile
     features = ogr.Open(features_path)
     if features.GetDriver().GetName() == 'ESRI Shapefile':
@@ -99,6 +100,7 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
     else:
         lyr = features.GetLayer()
     for fid in range(lyr.GetFeatureCount()):
+        flag = np.zeros(4)
         '''
         if fid > 40:
             continue
@@ -114,19 +116,44 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
         pxHeight = int(lrY - ulY)
         # If the clipping features extend out-of-bounds and ABOVE the raster...
         if gt[3] < maxY:
-            # In such a case... ulY ends up being negative--can't have that!
-            iY = ulY
-            ulY = 0
+            if gt[3] < minY:
+                continue
+            else:
+                # In such a case. ulY ends up being negative--can't have that!
+                ulY = 0
+                flag[0] = 1
+        if gt[0] > minX:
+            if gt[0] > maxX:
+                continue
+            else:
+                ulX = 0
+                flag[1] = 1
+        rastXmax = gt[0] + yRes * gt[1]
+        if rastXmax < maxX:
+            if rastXmax < minX:
+                continue
+            else:
+                lrX = yRes
+                flag[2] = 1
+        rastYmin = gt[3] + xRes * gt[5]
+        if rastYmin > minY:
+            if rastYmin > maxY:
+                continue
+            else:
+                lrY = xRes
+                flag[3] = 1
+        flag_sum = np.sum(flag)
+        # Multi-band image?
         try:
             clip = rast[:, ulY:lrY, ulX:lrX]
-            clip_complete = np.zeros_like(clip, clip.dtype)
         except IndexError:
             clip = rast[ulY:lrY, ulX:lrX]
-            clip_complete = np.zeros_like(clip, clip.dtype)
         geometry_counts = geom.GetGeometryCount()
+        clip_complete = np.zeros((pxHeight, pxWidth), clip.dtype)
         # perform the process for multi-part features
         for i in range(geometry_counts):
-            # Multi-band image?
+            # Do not delete this. Clip is set to None in each iteration and
+            # should be initialized here again.
             try:
                 clip = rast[:, ulY:lrY, ulX:lrX]
             except IndexError:
@@ -162,46 +189,37 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
             rasterize = ImageDraw.Draw(raster_poly)
             # Fill with zeroes
             rasterize.polygon(pixels, 0)
-            # If the clipping features extend out-of-bounds and ABOVE the
-            # raster
-            if gt[3] < maxY:
-                # The clip features were "pushed down" to match the bounds of
-                # the raster; this step "pulls" them back up
-                premask = image_to_array(raster_poly)
-                # We slice out the piece of our clip features that are
-                # "off the map"
-                mask = np.ndarray((premask.shape[-2] - abs(iY),
-                                   premask.shape[-1]), premask.dtype)
-                mask[:] = premask[abs(iY):, :]
-                # Then fill in from the bottom
-                mask.resize(premask.shape, refcheck=False)
-                # Most importantly, push the clipped piece down
-                gt2[3] = maxY - (maxY - gt[3])
+            premask = image_to_array(raster_poly)
+            # with the calculated geotransform matrix gt2, clip matrix should
+            # have the same dimension as premask
+            clip_new = np.zeros_like(premask, clip.dtype)
+            if flag_sum == 0:
+                mask = premask
+                clip_new = gdalnumeric.choose(mask, (clip, nodata))
             else:
-                mask = image_to_array(raster_poly)
-            # Clip the image using the mask
-            try:
-                clip = gdalnumeric.choose(mask, (clip, nodata))
-            # If the clipping features extend out-of-bounds and BELOW
-            # the raster
-            except ValueError:
-                # We have to cut the clipping features to the raster!
-                rshp = list(mask.shape)
-                if mask.shape[-2] != clip.shape[-2]:
-                    rshp[0] = clip.shape[-2]
-                if mask.shape[-1] != clip.shape[-1]:
-                    rshp[1] = clip.shape[-1]
-                mask.resize(*rshp, refcheck=False)
-                clip = gdalnumeric.choose(mask, (clip, nodata))
-            m1, n1 = np.nonzero(clip)
+                if flag_sum < 3:
+                    row_clip, col_clip = clip.shape
+                    index = np.array([-flag[0]*row_clip, flag[3]*row_clip,
+                                      -flag[1]*col_clip, flag[2]*col_clip]
+                                     ).astype(int)
+                    mask_index = np.where(index == 0, None, index)
+                    mask = premask[mask_index[0]:mask_index[1],
+                                   mask_index[2]:mask_index[3]]
+                    clip = gdalnumeric.choose(mask, (clip, nodata))
+                    clip_new[mask_index[0]:mask_index[1],
+                             mask_index[2]:mask_index[3]] = clip
+                else:
+                    raise InputError('Clip for the feature %d is not '
+                                     'supported' % fid)
+            m1, n1 = np.nonzero(clip_new)
             clip_stack = set(list(zip(m1, n1)))
             m2, n2 = np.nonzero(clip_complete)
             clip_complete_stack = set(list(zip(m2, n2)))
             intersect_clip = clip_complete_stack.intersection(clip_stack)
             if len(intersect_clip) == 0:
-                clip_complete = clip_complete + clip
+                clip_complete = clip_complete + clip_new
             else:
-                clip_complete = clip_complete - clip
+                clip_complete = clip_complete - clip_new
             mask = None
             premask = None
             raster_poly = None
@@ -211,18 +229,21 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
             gt3 = gt2
             gt2 = None
             clip = None
+            clip_new = None
         if save2csv:
             nuts_region = str(poly.GetField(0))
             dem_sum = np.sum(clip_complete) * unit_multiplier
-            feat.append(nuts_region)
-            demand.append(dem_sum)
-            print('Total demand/potential in region %s is: %0.1f GWh'
-                  % (nuts_region, dem_sum))
+            if dem_sum > 0:
+                feat.append(nuts_region)
+                demand.append(dem_sum)
+                print('The sum of values within the region %s is: %0.1f'
+                      % (nuts_region, dem_sum))
         if save2raster:
-            outRasterPath = output_dir + os.sep + shpName + '_feature_' + \
-                            str(fid) + '.tif'
-            CM19.main(outRasterPath, gt3, str(clip_complete.dtype),
-                      clip_complete, 0)
+            if dem_sum > 0:
+                outRasterPath = output_dir + os.sep + shpName + '_feature_' + \
+                                str(fid) + '.tif'
+                CM19.main(outRasterPath, gt3, str(clip_complete.dtype),
+                          clip_complete, 0)
     if save2csv or save2shp:
         saveCSVorSHP(feat, demand, features_path, output_dir, shpName,
                      save2csv, save2shp, OutputSRS=OutputSRS)
@@ -233,7 +254,7 @@ if __name__ == '__main__':
     start = time.time()
     # path to the src
     data_warehouse = path + os.sep + 'AD/data_warehouse'
-    features_path = data_warehouse + os.sep + "AT.shp"
+    features_path = data_warehouse + os.sep + "AT_NUTS3.shp"
     raster = data_warehouse + os.sep + "top_down_heat_density_map_v2_AT.tif"
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):

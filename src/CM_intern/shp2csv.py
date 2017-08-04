@@ -12,7 +12,7 @@ from osgeo import osr
 import pandas as pd
 
 
-def shp2csv(inShapefile, outCSV):
+def shp2csv(inShapefile, outCSV, OutputSRS=3035):
     # get the input layer
     driver = ogr.GetDriverByName('ESRI Shapefile')
     inDataSet = driver.Open(inShapefile)
@@ -23,7 +23,7 @@ def shp2csv(inShapefile, outCSV):
     
     # output SpatialReference
     outSpatialRef = osr.SpatialReference()
-    outSpatialRef.ImportFromEPSG(3035)    
+    outSpatialRef.ImportFromEPSG(OutputSRS)
     
     # create the CoordinateTransformation
     coordTrans = osr.CoordinateTransformation(inSpatialRef, outSpatialRef)
@@ -55,9 +55,9 @@ def shp2csv(inShapefile, outCSV):
         geom = inFeature.GetGeometryRef()
         # reproject the geometry
         geom.Transform(coordTrans)
-        
-        x = geom.Centroid().GetX()
-        y = geom.Centroid().GetY()
+        geom_centroid = geom.Centroid()
+        x = geom_centroid.GetX()
+        y = geom_centroid.GetY()
         
         ID.append(inFeature.GetField(fieldnames.index('ID')))
         GRF.append(inFeature.GetField(fieldnames.index('GRF')))
