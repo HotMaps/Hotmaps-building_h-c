@@ -7,7 +7,7 @@ if path not in sys.path:
 from AD.F13_district_heating_potential.main import ad_f13
 import CM.CM_TUW4.run_cm as CM4
 import CM.CM_TUW19.run_cm as CM19
-from CM_intern.clip import clip_raster
+import CM.CM_TUW22.run_cm as CM22
 
 
 def execute(outRasterPath):
@@ -20,16 +20,16 @@ def execute(outRasterPath):
     # should also be able to calculate potential for the selected area: shall
     # be considered in AD
     DH_Regions, arr1, origin = CM4.main(heat_density_map, strd_vector,
-                                         pix_threshold, DH_threshold)
+                                        pix_threshold, DH_threshold)
     pot_result = CM4.DHPotential(DH_Regions, arr1)
     geo_transform = [origin[0], 100, 0, origin[1], 0, -100]
     CM19.main(outRasterPath, geo_transform, str(pot_result.dtype), pot_result)
     pix_result = arr1 * DH_Regions.astype(int)
     # create raster cuts and summations
     output_dir = path + os.sep + 'Outputs'
-    clip_raster(pix_result, strd_vector, output_dir, gt=geo_transform,
-                nodata=0, save2csv=True, save2raster=True, save2shp=True,
-                unit_multiplier=0.01)
+    CM22.main(pix_result, strd_vector, output_dir, gt=geo_transform,
+              nodata=0, save2csv=True, save2raster=True, save2shp=True,
+              unit_multiplier=0.01)
 
 
 if __name__ == "__main__":
