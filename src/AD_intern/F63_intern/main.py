@@ -14,7 +14,7 @@ def ad_f63(spec_demand_csv, building_strd_info_csv, inShapefile):
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-    data_warehouse = path + os.sep + 'AD/data_warehouse_intern'
+    data_warehouse = path + os.sep + 'AD_intern/data_warehouse'
     eu_shp = data_warehouse + os.sep + 'AT_NUTS3.shp'
     if spec_demand_csv == '':
         # average specific demand in EU countries in residential and service
