@@ -50,6 +50,9 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
     outLayer = outDataSource.CreateLayer("Building_lyr_updated", srs,
                                          geom_type=geom_typ_dict[geom_typ])
     for i, item in enumerate(csv_cols):
+        # shapefile's field name should not exceed 10 characters. O.W. warning
+        # will be printed. To avodi waning, the following is applied:
+        item = item[:10]
         if i > 0:
             if col_dtype[i] == object:
                 Field = ogr.FieldDefn(item, ogr.OFTString)
