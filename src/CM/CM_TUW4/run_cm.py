@@ -15,15 +15,16 @@ from AD.heat_density_map.main import HDMAP
 
 
 def main(heat_density_map, region, pix_threshold, DH_threshold):
-    DH_Regions, arr1, rasterOrigin = DHP.DHReg(heat_density_map, region,
-                                               pix_threshold, DH_threshold)
+    DH_Regions, clipped_hdm, rasterOrigin = DHP.DHReg(heat_density_map, region,
+                                                      pix_threshold,
+                                                      DH_threshold)
 
-    return DH_Regions, arr1, rasterOrigin
+    return DH_Regions, clipped_hdm, rasterOrigin
 
 
-def DHPotential(DH_Regions, arr1):
+def DHPotential(DH_Regions, clipped_hdm):
 
-    return DHP.DHPotential(DH_Regions, arr1)
+    return DHP.DHPotential(DH_Regions, clipped_hdm)
 
 if __name__ == "__main__":
     start = time.time()
@@ -38,8 +39,8 @@ if __name__ == "__main__":
     pix_threshold = 10
     # DH_threshold [GWh/a]
     DH_threshold = 30
-    DH_Regions, arr1, rasterOrigin = main(heat_density_map, region,
-                                          pix_threshold, DH_threshold)
-    pot = DHPotential(DH_Regions, arr1)
+    DH_Regions, clipped_hdm, rasterOrigin = main(heat_density_map, region,
+                                                 pix_threshold, DH_threshold)
+    pot = DHPotential(DH_Regions, clipped_hdm)
     elapsed = time.time() - start
     print("%0.3f seconds" % elapsed)

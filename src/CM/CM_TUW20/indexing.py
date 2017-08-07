@@ -4,7 +4,13 @@ Created on July 26 2017
 
 @author: fallahnejad@eeg.tuwien.ac.at
 """
+import os
+import sys
 import time
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
+if path not in sys.path:
+    sys.path.append(path)
 '''
 This modules is for calculating the indices of those pixels of a raster which
 are covered with a vector. It considers an envelop around the vector layer and
@@ -14,7 +20,7 @@ The indices are only for the overlapping part of a vector layer and a raster
 
 
 def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_,
-               resolution=100.0):
+               pixWidth=100.0, pixHeight=100.0):
     '''
     minx:          minx Raster
     maxy:          maxy Raster
@@ -24,8 +30,11 @@ def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_,
     fmaxx_:        maxx shapefile
     fminy_:        miny shapefile
     fmaxy_:        maxy shapefile
-    resolution:    Raster resolution
+    pixWidth:      Width of raster pixels
+    pixHeight:     Height of raster pixels
     '''
+    pixWidth = abs(pixWidth)
+    pixHeight = abs(pixHeight)
     fminx = fminy = 10**10
     fmaxx = fmaxy = 0
     # Get boundaries
@@ -34,13 +43,13 @@ def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_,
     fmaxx = max(fmaxx_, fmaxx)
     fmaxy = max(fmaxy_, fmaxy)
     # define exact index that encompasses the feature.
-    lowIndexY = int((fminx-minx)/resolution)
-    lowIndexX = int((maxy-fmaxy)/resolution)
-    upIndexY = lowIndexY + int((fmaxx-fminx)/resolution)
-    upIndexX = lowIndexX + int((fmaxy-fminy)/resolution)
-    while (minx + upIndexY*resolution) < fmaxx:
+    lowIndexY = int((fminx-minx)/pixWidth)
+    lowIndexX = int((maxy-fmaxy)/pixHeight)
+    upIndexY = lowIndexY + int((fmaxx-fminx)/pixWidth)
+    upIndexX = lowIndexX + int((fmaxy-fminy)/pixHeight)
+    while (minx + upIndexY*pixWidth) < fmaxx:
         upIndexY = upIndexY + 1
-    while (maxy - upIndexX*resolution) > fminy:
+    while (maxy - upIndexX*pixHeight) > fminy:
         upIndexX = upIndexX + 1
     # check if input shapefile exceed the boundaries of input raster file.
     if lowIndexY < 0:
@@ -64,7 +73,8 @@ if __name__ == "__main__":
     fmaxx_ = 4854633.29352
     fminy_ = 2595156.89558
     fmaxy_ = 2890412.7091390
-    resolution = 100
+    pixWidth = 100.0
+    pixHeight = 100.0
     output = calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_)
     print('lowIndexX = %d \nupIndexX = %d \nlowIndexY = %d \nupIndexY = %d'
           % (output[0], output[1], output[2], output[3]))
