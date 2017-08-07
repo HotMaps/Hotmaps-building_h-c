@@ -150,9 +150,9 @@ def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
         fminx, fmaxx, fminy, fmaxy = geom.GetEnvelope()
         # define exact index that encompasses the feature.
         (lowIndexX, upIndexX, lowIndexY, upIndexY) = CM20.main(minx, maxy,
-                                                                dimX, dimY,
-                                                                fminx, fmaxx,
-                                                                fminy, fmaxy)
+                                                               dimX, dimY,
+                                                               fminx, fmaxx,
+                                                               fminy, fmaxy)
         # rasterOrigin2 = (minx + lowIndexY*100, maxy - lowIndexX*100)
         arr_out = DH[lowIndexX:upIndexX, lowIndexY:upIndexY]
         DH_Selected_Region = DHRegions(arr_out, DH_threshold)

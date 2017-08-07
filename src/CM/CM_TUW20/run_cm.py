@@ -14,9 +14,9 @@ from CM.CM_TUW20.indexing import calc_index
 
 
 def main(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_,
-         resolution=100.0):
+         pixWidth=100.0, pixHeight=100.0):
     output = calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_,
-                                 fminy_, fmaxy_, resolution)
+                        fminy_, fmaxy_, pixWidth, pixHeight)
     return output
 
 if __name__ == "__main__":
