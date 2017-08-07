@@ -4,6 +4,7 @@ Created on July 26 2017
 
 @author: fallahnejad@eeg.tuwien.ac.at
 """
+from math import ceil
 import os
 import sys
 import time
@@ -43,20 +44,10 @@ def calc_index(minx, maxy, dimX, dimY, fminx_, fmaxx_, fminy_, fmaxy_,
     fmaxx = max(fmaxx_, fmaxx)
     fmaxy = max(fmaxy_, fmaxy)
     # define exact index that encompasses the feature.
-    lowIndexY = int((fminx-minx)/pixWidth)
-    lowIndexX = int((maxy-fmaxy)/pixHeight)
-    upIndexY = lowIndexY + int((fmaxx-fminx)/pixWidth)
-    upIndexX = lowIndexX + int((fmaxy-fminy)/pixHeight)
-    # Andreas, comment:
-    # Wouldn'd a simple transformation result in a better code
-    # Try not to use loops with Python
-    # Check results! Haven't checked yet
-    # upIndexY = ceil((fmaxx - minx) / resolution)
-    # upIndexX = ceil((maxy - fminy) / resolution)
-    while (minx + upIndexY*resolution) < fmaxx:
-        upIndexY = upIndexY + 1
-    while (maxy - upIndexX*pixHeight) > fminy:
-        upIndexX = upIndexX + 1
+    lowIndexY = int((fminx - minx) / pixWidth)
+    lowIndexX = int((maxy - fmaxy) / pixHeight)
+    upIndexY = ceil((fmaxx - minx) / pixWidth)
+    upIndexX = ceil((maxy - fminy) / pixHeight)
     # check if input shapefile exceed the boundaries of input raster file.
     if lowIndexY < 0:
         lowIndexY = 0
