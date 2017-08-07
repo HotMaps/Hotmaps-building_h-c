@@ -5,12 +5,18 @@ Created on July 11 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
-from src.AD.heat_density_map.main import HDMAP
+import sys
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
+if path not in sys.path:
+    sys.path.append(path)
+from AD.heat_density_map.main import HDMAP
 
 
 def ad_f13():
-    os.chdir('../..')
-    data_warehouse = os.getcwd() + os.sep + 'AD/data_warehouse'
+    # path to the AD
+    path = os.path.dirname(os.path.dirname(__file__))
+    data_warehouse = path + os.sep + 'data_warehouse'
     heat_density_map = HDMAP(data_warehouse)
     region = data_warehouse + os.sep + 'AT.shp'
     # in GWh/km2
@@ -21,4 +27,6 @@ def ad_f13():
 
 
 if __name__ == "__main__":
-    ad_f13()
+    output = ad_f13()
+    for item in output:
+        print(item)
