@@ -5,13 +5,17 @@ Created on July 6 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
+import sys
 import pandas as pd
 import numpy as np
-import gdal
-import ogr
-import osr
+from osgeo import gdal
+from osgeo import ogr
+from osgeo import osr
 import time
-
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
+if path not in sys.path:
+    sys.path.append(path)
 '''
 - The user can select a region which is potentially larger than his/her
 uploaded layer. An upper hand module should combine the uploaded layer with the
@@ -40,11 +44,26 @@ def indexing(UsefulDemandRaster, X, Y):
     transform = UsefulDemandDataSource.GetGeoTransform()
     x0 = transform[0]
     y0 = transform[3]
-    xIndex = np.floor((X-x0)/100.0).astype(int)
-    yIndex = np.floor((y0-Y)/100.0).astype(int)
+    resolution = transform[1]
+    xIndex = np.floor((X-x0)/resolution).astype(int)
+    yIndex = np.floor((y0-Y)/resolution).astype(int)
     band1 = UsefulDemandDataSource.GetRasterBand(1)
     arrUsefulDemand = band1.ReadAsArray()
-    spec_demand = arrUsefulDemand[yIndex, xIndex]
+    # find the indices which are out of range of the raster
+    h, w = arrUsefulDemand.shape
+    l = yIndex.size
+    # define specific demand array with the same length as l and fill it with
+    # NaN
+    spec_demand = np.empty(l)
+    outRangeY = np.concatenate((np.argwhere(yIndex < 0),
+                                np.argwhere(yIndex >= h)), axis=0)
+    outRangeX = np.concatenate((np.argwhere(xIndex < 0),
+                                np.argwhere(xIndex >= w)), axis=0)
+    outRange = np.union1d(outRangeY, outRangeX)
+    IndexInRange = np.setdiff1d(np.arange(l), outRange)
+    # fill elements which are in range
+    spec_demand[IndexInRange] = arrUsefulDemand[yIndex[IndexInRange],
+                                                xIndex[IndexInRange]]
     UsefulDemandDataSource = None
     return spec_demand
 
@@ -61,6 +80,7 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
     outSpatialRef.ImportFromEPSG(3035)
     # Compare projection of input layer and the desired projection and
     # create the coordinate transformation parameter
+    flag = False
     if inSpatialRef != outSpatialRef:
         flag = True
         coordTrans = osr.CoordinateTransformation(inSpatialRef, outSpatialRef)
@@ -109,8 +129,11 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
         if flag:
             # change projection of the geometry
             geom.Transform(coordTrans)
-        fieldvalues[fid, xIndex] = geom.Centroid().GetX()
-        fieldvalues[fid, yIndex] = geom.Centroid().GetY()
+        # Creating the geom.Centroid() object takes significant time
+        # => Do this just ones
+        geom_Centroid = geom.Centroid()
+        fieldvalues[fid, xIndex] = geom_Centroid.GetX()
+        fieldvalues[fid, yIndex] = geom_Centroid.GetY()
         for item in newFieldList:
             fieldvalues[fid, item] = inFeature.GetField(int(fIndex[item]))
         '''
@@ -122,14 +145,17 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
         however, recalculation of it does not cause deviation since basically
         it is should be similar to the input
         '''
-        fieldvalues[fid, FootprintIndex] = geom.GetArea()
+        if geom.GetGeometryName() == 'POINT':
+            fieldvalues[fid, FootprintIndex] = 0
+        else:
+            fieldvalues[fid, FootprintIndex] = geom.GetArea()
         inFeature = inLayer.GetNextFeature()
     if 'GFA' not in fieldList[newFieldList]:
         fieldvalues[:, GFAIndex] = fieldvalues[:, FootprintIndex] * \
             fieldvalues[:, NrFloorIndex]
     else:
         # Assign a value to GFA for the attributes that have no entries
-        k = np.argwhere(np.isnan(fieldvalues[:, GFAIndex]) or
+        k = np.argwhere(np.isnan(fieldvalues[:, GFAIndex]) +
                         fieldvalues[:, GFAIndex] == 0)
         noGFA = k[::2]
         fieldvalues[noGFA, GFAIndex] = fieldvalues[noGFA, FootprintIndex] * \
@@ -182,14 +208,15 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
 
 if __name__ == "__main__":
     start = time.time()
-    UsefulDemRastPath = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                        "NoDemandData"
-    ResidentialUsefulDemand = UsefulDemRastPath + "/ResidentialUsefulDemand.tif"
-    ServiceUsefulDemand = UsefulDemRastPath + "/ServiceUsefulDemand.tif"
-    outCSV = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-             "NoDemandData//Bistrita.csv"
-    inShapefile = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                  "NoDemandData/Bistrita_3035.shp"
+    data_warehouse = path + os.sep + 'AD/data_warehouse'
+    UsefulDemRastPath = data_warehouse
+    output_dir = path + os.sep + 'Outputs'
+    ResidentialUsefulDemand = UsefulDemRastPath + "/ResidentialUsefulDemand_" \
+                                                  "AT.tif"
+    ServiceUsefulDemand = UsefulDemRastPath + "/ServiceUsefulDemand_AT.tif"
+    outCSV = output_dir + os.sep + "CM9_building_strd_info.csv"
+    inShapefile = data_warehouse + os.sep + 'Sample_OSM_Building_Lyr.shp'
     UsefulDemandRaster = [ResidentialUsefulDemand, ServiceUsefulDemand]
     shp2csv(inShapefile, UsefulDemandRaster, outCSV)
-    print(time.time() - start)
+    elapsed = time.time() - start
+    print("%0.3f seconds" % elapsed)

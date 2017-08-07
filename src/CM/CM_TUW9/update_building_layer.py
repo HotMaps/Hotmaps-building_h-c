@@ -5,10 +5,15 @@ Created on July 6 2017
 @author: fallahnejad@eeg.tuwien.ac.at
 """
 import os
+import sys
 import time
-import ogr
-import osr
+from osgeo import ogr
+from osgeo import osr
 import pandas as pd
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
+                                                       abspath(__file__))))
+if path not in sys.path:
+    sys.path.append(path)
 '''
 This module creates a shapefile with attributes which exist in the input
 shapefile of shp2csv.py module and assigns the calculated values to the
@@ -38,9 +43,16 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
         outDriver.DeleteDataSource(outShapefile)
     # Create the output shapefile
     outDataSource = outDriver.CreateDataSource(outShapefile)
+    geom_typ = inLayer.GetGeomType()
+    geom_typ_dict = {1: ogr.wkbPoint, 2: ogr.wkbLineString, 3: ogr.wkbPolygon}
+    if geom_typ not in list(geom_typ_dict.keys()):
+        raise Exception("Geometry type of the input layer is not supported!")
     outLayer = outDataSource.CreateLayer("Building_lyr_updated", srs,
-                                         geom_type=ogr.wkbPolygon)
+                                         geom_type=geom_typ_dict[geom_typ])
     for i, item in enumerate(csv_cols):
+        # shapefile's field name should not exceed 10 characters. O.W. warning
+        # will be printed. To avodi waning, the following is applied:
+        item = item[:10]
         if i > 0:
             if col_dtype[i] == object:
                 Field = ogr.FieldDefn(item, ogr.OFTString)
@@ -71,11 +83,11 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
 
 if __name__ == "__main__":
     start = time.time()
-    inputCSV = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-               "NoDemandData/Bistrita.csv"
-    outShapefile = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                   "NoDemandData/Bistrita_new.shp"
-    inShapefile = "/home/simulant/ag_lukas/personen/Mostafa/Task 3.1/" \
-                  "NoDemandData/Bistrita_3035.shp"
+    data_warehouse = path + os.sep + 'AD/data_warehouse'
+    output_dir = path + os.sep + 'Outputs'
+    inputCSV = output_dir + os.sep + "CM9_building_strd_info.csv"
+    outShapefile = output_dir + os.sep + "CM9_updated_building_footprint_" \
+                                         "AT.shp"
+    inShapefile = data_warehouse + os.sep + 'Sample_OSM_Building_Lyr.shp'
     update_building_lyr(inputCSV, inShapefile, outShapefile)
     print(time.time() - start)
