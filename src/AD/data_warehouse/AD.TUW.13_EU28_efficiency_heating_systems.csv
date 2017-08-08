@@ -1,8 +1,0 @@
-idx_heatingsystem,heating system,efficiency
-1,Oil single,0.97
-2,Gas single,0.87
-3,Heat pump air/water,0.94
-4,Heat pump water/water,0.89
-5,Heat pump brine/water shallow,0.87
-6,Heat pump brine/water deep,0.95
-7,District heating,0.85

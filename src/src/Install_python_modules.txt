@@ -1,0 +1,42 @@
+C:\\python36\python -m pip install --upgrade numpy-1.13.1+mkl-cp36-cp36m-win_amd64.whl
+C:\\python36\python -m pip install --upgrade scipy-0.19.1-cp36-cp36m-win_amd64.whl
+C:\\python36\python -m pip install --upgrade cython
+C:\\python36\python -m pip install --upgrade matplotlib
+C:\\python36\python -m pip install --upgrade pandas  
+C:\\python36\python -m pip install --upgrade Shapely-1.5.17-cp36-cp36m-win_amd64.whl
+C:\\python36\python -m pip install --upgrade Fiona-1.7.8-cp36-cp36m-win_amd64.whl
+C:\\python36\python -m pip install --upgrade geopandas  
+C:\\python36\python -m pip install --upgrade GDAL-2.1.4-cp36-cp36m-win_amd64.whl
+C:\\python36\python -m pip install --upgrade pillow  
+C:\\python36\python -m pip install --upgrade rasterio-1.0a9-cp36-cp36m-win_amd64.whl
+C:\\python36\python -m pip install --upgrade rasterstats
+C:\\python36\python -m pip install --upgrade osr
+C:\\python36\python -m pip install --upgrade ipyparallel
+C:\\python36\python -m pip install --upgrade jupyter
+C:\\python36\python -m pip install --upgrade  bs4 # beautiful
+C:\\python36\python -m pip install --upgrade  requests
+
+C:\\python36\python -m pip install --upgrade wheel
+C:\\python36\python -m pip install --upgrade Werkzeug 
+#C:\\python36\python -m pip install --upgrade six
+#C:\\python36\python -m pip install --upgrade setuptools
+#C:\\python36\python -m pip install --upgrade pytz
+#C:\\python36\python -m pip install --upgrade python-dateutil
+#C:\\python36\python -m pip install --upgrade pyparsing
+C:\\python36\python -m pip install --upgrade py-bcrypt
+C:\\python36\python -m pip install --upgrade packaging 
+#C:\\python36\python -m pip install --upgrade MarkupSafe 
+#C:\\python36\python -m pip install --upgrade Jinja2 
+C:\\python36\python -m pip install --upgrade itsdangerous 
+C:\\python36\python -m pip install --upgrade Flask 
+C:\\python36\python -m pip install --upgrade Flask-RESTful
+C:\\python36\python -m pip install --upgrade Flask-Login
+C:\\python36\python -m pip install --upgrade Flask-Bcrypt
+#C:\\python36\python -m pip install --upgrade click 
+C:\\python36\python -m pip install --upgrade appdirs 
+C:\\python36\python -m pip install --upgrade pycrypto
+
+ 
+C:\\python36\python -m pip install --upgrade  h5py
+C:\\python36\python -m pip install --upgrade  mysqlclient 
+C:\\python36\python -m pip install --upgrade  psutil

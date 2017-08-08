@@ -21,6 +21,6 @@ class PopulationDensityByNuts(Resource):
         :param param:
         :return:
         """
-        return {'hello': name}
+        return {'hellox': name}
 
 
