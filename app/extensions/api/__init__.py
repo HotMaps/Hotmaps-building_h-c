@@ -8,8 +8,8 @@ log = logging.getLogger(__name__)
 
 #TODO: name your API
 api = Api(version='1.0',
-          title='Example  API',
-          description='This is an example of API.'
+          title='BuildingHC',
+          description='This is the BuildingHC API.'
 )
 
 @api.errorhandler

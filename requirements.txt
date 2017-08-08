@@ -29,3 +29,6 @@ SQLAlchemy==1.1.10
 SQLAlchemy-Utils==0.32.12
 webargs==1.8.1
 Werkzeug==0.12.2
+scipy
+docutils
+pillow

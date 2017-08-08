@@ -19,5 +19,6 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 #TODO: list the modules you are using here so they can be launched by the api
 ENABLED_MODULES = (
     'example', #TODO: remove the example module
-    'api',
+    'F107',
+    'api' # should be last entry!
 )
