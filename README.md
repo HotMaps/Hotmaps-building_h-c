@@ -46,7 +46,25 @@ app/
     ├── common
     │   ├── __init__.py
     │   ├── customFields.py
-    │   └── schemas.py
+    │   ├── schemas.py
+    │   ├── CM
+    │   │   └── TUW custom structures
+    │   ├── AD
+    │   │   └── TUW custom structures
+    │   └── FEAT
+    │   │   └── TUW custom structures
+    ├── F107
+    │   ├── __init__.py
+    │   ├── models.py
+    │   ├── parameters.py
+    │   ├── resources.py
+    │   └── schemas.py
+    ├── (other API modules)
+    │   ├── __init__.py
+    │   ├── models.py
+    │   ├── parameters.py
+    │   ├── resources.py
+    │   └── schemas.py
     └── example
         ├── __init__.py
         ├── models.py
