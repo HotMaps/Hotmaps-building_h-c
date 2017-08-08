@@ -31,6 +31,7 @@ Files:
 app/
 ├── requirements.txt
 ├── __init__.py
+├── settings.py
 ├── extensions
 │    ├── __init__.py
 │    └── api
