@@ -10,6 +10,7 @@ import time
 import numpy as np
 from osgeo import gdal
 from osgeo import osr
+from asn1crypto._ffi import null
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
                                                        abspath(__file__))))
 if path not in sys.path:
@@ -34,7 +35,11 @@ def array2raster(outRasterPath, geo_transform, dataType, array, noDataValue=0,
     rows = array.shape[0]
     driver = gdal.GetDriverByName('GTiff')
     outRaster = driver.Create(outRasterPath, cols, rows, 1,
-                              dict_varTyp[dataType], ['compress=LZW'])
+                              dict_varTyp[dataType], ['compress=DEFLATE',
+                                                      'TILED=YES',
+                                                      'TFW=YES',
+                                                      'ZLEVEL=9',
+                                                      'PREDICTOR=1'])
     outRaster.SetGeoTransform(geo_transform)
     outRasterSRS = osr.SpatialReference()
     outRasterSRS.ImportFromEPSG(OutputRasterSRS)
