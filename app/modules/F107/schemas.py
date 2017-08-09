@@ -9,4 +9,4 @@ from ..common import schemas as commonSchema
 class F107Schema(Schema):
     text = base_fields.String()
     demand_value = base_fields.Integer()
-    response = base_fields.String()
+    response = base_fields.Dict()
