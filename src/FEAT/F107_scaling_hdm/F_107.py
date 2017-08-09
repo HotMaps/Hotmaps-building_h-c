@@ -1,6 +1,5 @@
 import os
 import sys
-import gdal
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
                                                        abspath(__file__))))
 if path not in sys.path:
