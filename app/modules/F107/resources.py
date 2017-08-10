@@ -37,7 +37,7 @@ class F107(Resource):
         try:
             f_107_ret = F_107.execute(demand_value, output_dir, outRasterPath)
         except:
-            f_107_ret = {"test": "asdf"}
+            f_107_ret = {"attention": "something went wrong"}
 
         # text, response need to be defined in schema
         return {"text": "posted %s, %d to f107"%( text, demand_value ), "response": f_107_ret }
