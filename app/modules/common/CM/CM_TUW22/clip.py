@@ -250,6 +250,7 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
     if return_array:
         return clip_complete, gt3
 
+
 if __name__ == '__main__':
     start = time.time()
     # path to the src
