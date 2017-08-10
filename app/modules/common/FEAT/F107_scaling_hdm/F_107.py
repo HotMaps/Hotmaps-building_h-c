@@ -17,11 +17,10 @@ def execute(updated_demand_value, output_dir, outRasterPath):
                                        nodata=0, return_array=True)
     new_HDM_cut = CM18.main(hdm_cut, updated_demand_value)
     CM19.main(outRasterPath, geo_transform, "float32", new_HDM_cut)
-    return {'path': outRasterPath}
+    return {'F107_out_raster_path_0': outRasterPath}
 
 
 if __name__ == "__main__":
-    #print('Calculation started!')
     # path to the src
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
@@ -30,4 +29,4 @@ if __name__ == "__main__":
     updated_demand_value = 6000
     outRasterPath = output_dir + os.sep + 'F107_' + 'scaled_hdm.tif'
     output = execute(updated_demand_value, output_dir, outRasterPath)
-    #print('Calculation ended successfully!')
+    print(output)

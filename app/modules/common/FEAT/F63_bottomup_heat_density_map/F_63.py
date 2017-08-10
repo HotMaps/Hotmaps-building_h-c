@@ -16,14 +16,15 @@ def execute(spec_demand_csv, building_strd_info_csv, inShapefile):
     process_bool, inputValues = ad_f63(spec_demand_csv,
                                        building_strd_info_csv, inShapefile)
     outputs = CM9.main(process_bool, inputValues)
-    return {"Absolute heat demand": outputs[0],
-            "Mean heat demand per capita": outputs[1],
-            "ave. specific demand": outputs[2],
-            "path": outputs[3:]}
+    return {"F63_Abs_heat_dem": outputs[0][0],
+            "F63_Mean_heat_dem_per_cap": outputs[0][1],
+            "F63_ave_spec_dem": outputs[0][2],
+            "F63_out_raster_path_0": outputs[1],
+            "F63_out_raster_path_1": outputs[2],
+            "F63_out_raster_path_2": outputs[3]}
 
 
 if __name__ == "__main__":
-    print('Calculation started!')
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -31,5 +32,5 @@ if __name__ == "__main__":
     spec_demand_csv = ''
     building_strd_info_csv = ''
     inShapefile = ''
-    execute(spec_demand_csv, building_strd_info_csv, inShapefile)
-    print('Calculation ended successfully!')
+    outputs = execute(spec_demand_csv, building_strd_info_csv, inShapefile)
+    print(outputs)
