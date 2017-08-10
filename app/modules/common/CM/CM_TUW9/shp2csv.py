@@ -129,11 +129,8 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
         if flag:
             # change projection of the geometry
             geom.Transform(coordTrans)
-        # Creating the geom.Centroid() object takes significant time
-        # => Do this just ones
-        geom_Centroid = geom.Centroid()
-        fieldvalues[fid, xIndex] = geom_Centroid.GetX()
-        fieldvalues[fid, yIndex] = geom_Centroid.GetY()
+        fieldvalues[fid, xIndex] = geom.Centroid().GetX()
+        fieldvalues[fid, yIndex] = geom.Centroid().GetY()
         for item in newFieldList:
             fieldvalues[fid, item] = inFeature.GetField(int(fIndex[item]))
         '''
@@ -205,6 +202,7 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
     df.to_csv(outCSV)
     inDataSet = None
     df = None
+
 
 if __name__ == "__main__":
     start = time.time()

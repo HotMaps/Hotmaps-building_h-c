@@ -46,9 +46,11 @@ def main(process_bool, inputValues):
     # Process 4: generates a heat density map
     inputCSV = outCSV
     start = time.time()
-    zs(inputCSV, heatDensityRaster, population)
+    outputs = zs(inputCSV, heatDensityRaster, population)
     if verbose:
         print('Process 4 took: %0.2f seconds' % (time.time() - start))
+    return outputs, outCSV, outShapefile, heatDensityRaster
+
 
 if __name__ == "__main__":
     start = time.time()
@@ -76,5 +78,6 @@ if __name__ == "__main__":
     inputValues = (eu_shp, spec_demand_csv, UsefulDemandRasterPath,
                    UsefulDemandRaster, inShapefile, outCSV, outShapefile,
                    heatDensityRaster, population)
-    main(process_bool, inputValues)
+    output = main(process_bool, inputValues)
     print('The whole process took %0.2f seconds' % (time.time() - start))
+    print(output)

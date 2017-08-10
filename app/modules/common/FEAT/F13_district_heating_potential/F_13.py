@@ -24,12 +24,14 @@ def execute(outRasterPath):
     result = CM4.DHPotential(DH_Regions, arr1)
     geo_transform = [origin[0], 100, 0, origin[1], 0, -100]
     CM19.main(outRasterPath, geo_transform, str(result.dtype), result)
+    return {'path': outRasterPath}
+
 
 if __name__ == "__main__":
-    print('Calculation started!')
+    #print('Calculation started!')
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     outRasterPath = output_dir + os.sep + 'F13_' + 'Pot_AT_TH30.tif'
     execute(outRasterPath)
-    print('Calculation ended successfully!')
+    #print('Calculation ended successfully!')

@@ -14,8 +14,8 @@ import CM.CM_TUW9.main_block as mb
 
 
 def main(process_bool, inputValues):
-    mb.main(process_bool, inputValues)
-    return
+    outputs = mb.main(process_bool, inputValues)
+    return outputs
 
 if __name__ == "__main__":
     start = time.time()

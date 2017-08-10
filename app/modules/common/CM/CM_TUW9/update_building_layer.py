@@ -81,6 +81,7 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
     inDataSource = None
     outDataSource = None
 
+
 if __name__ == "__main__":
     start = time.time()
     data_warehouse = path + os.sep + 'AD/data_warehouse'

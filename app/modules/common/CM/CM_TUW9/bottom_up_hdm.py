@@ -84,10 +84,11 @@ def zonStat_selectedArea(inputCSV, outRasterPath, population=0,
         mean_dem_perCapita = abs_heat_demand/float(population)
     else:
         mean_dem_perCapita = np.nan
-    print("Absolute heat demand: %0.1f GWh\n"
-          "Mean heat demand per capita: %0.2f kWh\n"
-          "Mean heat demand per heated surface (ave. specific demand): %0.2f"
-          % (abs_heat_demand*10**(-6), mean_dem_perCapita, mean_spec_demand))
+#     print("Absolute heat demand: %0.1f GWh\n"
+#           "Mean heat demand per capita: %0.2f kWh\n"
+#           "Mean heat demand per heated surface (ave. specific demand): %0.2f"
+#           % (abs_heat_demand*10**(-6), mean_dem_perCapita, mean_spec_demand))
+    return (abs_heat_demand*10**(-6), mean_dem_perCapita, mean_spec_demand)
 
 
 if __name__ == "__main__":

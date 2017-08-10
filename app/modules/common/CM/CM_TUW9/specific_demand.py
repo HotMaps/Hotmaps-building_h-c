@@ -63,6 +63,7 @@ def gdal_rasterize(vector_fn, raster_fn, targetfield, pixel_size=100,
     target_ds = None
     source_layer = None
     source_ds = None
+    return raster_fn
 
 
 def specific_demand(inShp, inCSV, outRasterPath):
@@ -140,6 +141,7 @@ def specific_demand(inShp, inCSV, outRasterPath):
         gdal_rasterize(outShapefile, outRasterPath + os.sep + 'CM19_' + name +
                        'UsefulDemand.tif', field)
     shutil.rmtree(temp_dir)
+
 
 if __name__ == "__main__":
     start = time.time()

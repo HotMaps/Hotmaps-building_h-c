@@ -15,7 +15,11 @@ def execute(spec_demand_csv, building_strd_info_csv, inShapefile):
         raise ValueError('A shapefile should be selected!')
     process_bool, inputValues = ad_f63(spec_demand_csv,
                                        building_strd_info_csv, inShapefile)
-    CM9.main(process_bool, inputValues)
+    outputs = CM9.main(process_bool, inputValues)
+    return {"Absolute heat demand": outputs[0],
+            "Mean heat demand per capita": outputs[1],
+            "ave. specific demand": outputs[2],
+            "path": outputs[3:]}
 
 
 if __name__ == "__main__":
