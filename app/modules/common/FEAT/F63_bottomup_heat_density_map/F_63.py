@@ -19,9 +19,9 @@ def execute(spec_demand_csv, building_strd_info_csv, inShapefile):
     return {"F63_Abs_heat_dem": outputs[0][0],
             "F63_Mean_heat_dem_per_cap": outputs[0][1],
             "F63_ave_spec_dem": outputs[0][2],
-            "F63_out_raster_path_0": outputs[1],
-            "F63_out_raster_path_1": outputs[2],
-            "F63_out_raster_path_2": outputs[3]}
+            "F63_out_csv_path_0": outputs[1],
+            "F63_out_shp_path_0": outputs[2],
+            "F63_out_raster_path_0": outputs[3]}
 
 
 if __name__ == "__main__":
