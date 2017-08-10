@@ -21,7 +21,6 @@ def execute(updated_demand_value, output_dir, outRasterPath):
 
 
 if __name__ == "__main__":
-    # path to the src
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)

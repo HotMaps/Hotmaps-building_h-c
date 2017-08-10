@@ -1,8 +1,3 @@
-'''
-Created on Jul 26, 2017
-
-@author: simulant
-'''
 import os
 import time
 import sys
