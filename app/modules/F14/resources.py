@@ -24,9 +24,22 @@ class F14(Resource):
 
     def post(self, args):
         payload = args['payload']
+        
+        
+        interest_rate = payload['interest_rate']
+        lifetime = payload['lifetime']
+        ##Information from selected area
+        
+        user_input_nuts0 = payload['nuts0']
+        user_input_nuts3 = payload['nuts3']
+        population = payload['population']
+
+        #user input
+        sel_building_energy_demand= payload['building_energy_demand']
+        sel_building_heat_load = payload['building_heat_load']
 
         try:
-            f_14_ret = F_14.execute()
+            f_14_ret = F_14.execute(interest_rate, lifetime, user_input_nuts0, user_input_nuts3, population, sel_building_energy_demand, sel_building_heat_load)
         except:
             f_14_ret = {"attention": "something went wrong"}
 
