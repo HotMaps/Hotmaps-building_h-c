@@ -20,6 +20,7 @@ import CM.CM_TUW3.run_cm as CM3
 
 import pandas
 import numpy
+import json
 
 def execute():
 
@@ -45,7 +46,15 @@ def execute():
     export_dataframe=pandas.concat([name_heating_systems,var_costs,fix_costs, energy_costs, total_costs, share_of_taxes, co2_costs, lcoh, lcohcapita, fed, specific_emissions, total_emissions],axis=1)
     
     #return [var_costs, fix_costs,energy_costs, total_costs, share_of_taxes, co2_costs, lcoh, lcohcapita, fed,specific_emissions, total_emissions]
-    return export_dataframe
+    #return export_dataframe
+
+    test = export_dataframe
+    export_dataframe = export_dataframe.set_index('Heating System') 
+    dictionary= json.loads( export_dataframe.to_json() )
+    
+    
+    return dictionary
+
 
 if __name__ == "__main__":
     print('calculation started')
