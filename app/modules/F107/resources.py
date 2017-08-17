@@ -25,22 +25,20 @@ class F107(Resource):
     def post(self, args):
         payload = args['payload']
 
-        # text, demand_value need to be defined in schema
-        text = payload['text']
-        demand_value = payload['demand_value']
+        #  demand_value need to be defined in schema
+        demand_value = payload['updated_demand_value']
 
-        # data and source should not be in same directory...
-        path = '/data/data/' # does not exist (yet). needs to be copied by Dockerfile
+        path = "/data/modules/common"
         output_dir = path + os.sep + 'Outputs'
         outRasterPath = output_dir + os.sep + 'F107_' + 'scaled_hdm.tif'
 
         try:
             f_107_ret = F_107.execute(demand_value, output_dir, outRasterPath)
         except:
-            f_107_ret = {"test": "asdf"}
+            f_107_ret = {"attention": "something went wrong"}
 
-        # text, response need to be defined in schema
-        return {"text": "posted %s, %d to f107"%( text, demand_value ), "response": f_107_ret }
+        # response need to be defined in schema
+        return {"response": f_107_ret}
 
     @api.response(schemas.F107Schema())
     def get(self):
