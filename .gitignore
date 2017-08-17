@@ -97,3 +97,11 @@ ENV/
 # Rope project settings
 .ropeproject
 
+
+app/modules/common/Outputs/
+
+\.pydevproject
+
+\.project
+
+\.settings/
