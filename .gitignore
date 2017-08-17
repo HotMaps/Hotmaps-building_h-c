@@ -59,3 +59,5 @@ src/CM_intern/Old/
 src/CM_intern/convert_OSM_data_to_3035/kernprof\.py
 
 src/CM_intern/convert_OSM_data_to_3035/run_kernprof\.sh
+
+app/modules/common/Outputs/
