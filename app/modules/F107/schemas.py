@@ -7,9 +7,7 @@ from flask_marshmallow import base_fields
 from ..common import schemas as commonSchema
 
 class F107Schema(Schema):
-    #text = base_fields.String()
-    #demand_value = base_fields.Integer()
-    #response = base_fields.Dict()
     updated_demand_value = base_fields.Integer()
-    otput_dir = base_fields.String()
+    output_dir = base_fields.String()
     outRasterPath = base_fields.String()
+    response = base_fields.Dict()

@@ -8,4 +8,5 @@ from ..common import schemas as commonSchema
 
 class F13Schema(Schema):
     text = base_fields.String()
+    response = base_fields.Dict()
     

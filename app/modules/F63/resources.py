@@ -29,15 +29,14 @@ class F63(Resource):
         spec_demand_csv = payload['spec_demand_csv']
         building_strd_info_csv = payload['building_strd_info_csv']
         inShapefile = payload['inShapefile']
-       
 
         try:
             f_63_ret = F_63.execute(spec_demand_csv, building_strd_info_csv, inShapefile)
         except:
-            f_63_ret = {"test": "asdf"}
+            f_63_ret = {"attention": "something went wrong"}
 
-        # text, response need to be defined in schema
-        return {"text": "posted %s, %d to f63", "response": f_63_ret }
+        # response need to be defined in schema
+        return {"response": f_63_ret }
 
     @api.response(schemas.F63Schema())
     def get(self):

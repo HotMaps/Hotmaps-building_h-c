@@ -7,4 +7,4 @@ from flask_marshmallow import base_fields
 from ..common import schemas as commonSchema
 
 class F14Schema(Schema):
-    text = base_fields.String()
+    response = base_fields.Dict()

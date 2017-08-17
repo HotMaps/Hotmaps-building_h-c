@@ -24,9 +24,10 @@ class F13(Resource):
 
     def post(self, args):
         payload = args['payload']
-
+    
+        path = "/data/modules/common"
         output_dir = path + os.sep + 'Outputs'
-        outRasterPath = output_dir + os.sep + 'F107_' + 'scaled_hdm.tif'
+        outRasterPath = output_dir + os.sep + 'F13_' + 'Pot_AT_TH30.tif'
 
         try:
             f_13_ret = F_13.execute(outRasterPath)
@@ -34,7 +35,7 @@ class F13(Resource):
             f_13_ret = {"attention": "something went wrong"}
 
         # text, response need to be defined in schema
-        return {"text": "posted %s, %d to f13"%( text ), "response": f_13_ret }
+        return {"response":  f_13_ret }
 
     @api.response(schemas.F13Schema())
     def get(self):

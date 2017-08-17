@@ -30,8 +30,8 @@ class F14(Resource):
         except:
             f_14_ret = {"attention": "something went wrong"}
 
-        # text, response need to be defined in schema
-        return {"text": "posted %s, %d to f14"%( text ), "response": f_14_ret }
+        # response need to be defined in schema
+        return {"response": f_14_ret }
 
     @api.response(schemas.F14Schema())
     def get(self):
