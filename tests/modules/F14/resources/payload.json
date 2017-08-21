@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "building_heat_load": 20,
+    "interest_rate": 1.06,
+    "building_energy_demand": 120,
+    "population": 180000,
+    "lifetime": 20,
+    "nuts0": "AT",
+    "response": {},
+    "nuts3": "AT130"
+  }
+}
