@@ -1,0 +1,10 @@
+{
+  "response": {
+    "F63_Abs_heat_dem": 1149.1344591528334,
+    "F63_ave_spec_dem": 145,
+    "F63_out_csv_path_0": "/data/modules/common/Outputs/F63_building_strd_info.csv",
+    "F63_Mean_heat_dem_per_cap": 1149.1344591528334,
+    "F63_out_raster_path_0": "/data/modules/common/Outputs/F63_Heat_Density_Map.tif",
+    "F63_out_shp_path_0": "/data/modules/common/Outputs/F63_updated_building_footprint_AT.shp"
+  }
+}

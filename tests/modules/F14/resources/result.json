@@ -1,0 +1,103 @@
+{
+  "response": {
+    "LCOH [€/MWh]": {
+      "Heat pump air/water": 154.6994496019,
+      "Heat pump brine/water shallow": 164.4133480723,
+      "Oil single": 131.8007673945,
+      "District heating": 164.1776616112,
+      "Heat pump water/water": 142.827017085,
+      "Gas single": 142.1108159784,
+      "Heat pump brine/water deep": 136.3589593089
+    },
+    "fix heat supply costs": {
+      "Heat pump air/water": 3858.4020373379,
+      "Heat pump brine/water shallow": 3349.601768678,
+      "Oil single": 2586.4013656881,
+      "District heating": 3307.2017462897,
+      "Heat pump water/water": 3031.6016007655,
+      "Gas single": 2586.4013656881,
+      "Heat pump brine/water deep": 2713.6014328531
+    },
+    "costs per capite [€/capita]": {
+      "Heat pump air/water": 0.1031329664,
+      "Heat pump brine/water shallow": 0.1096088987,
+      "Oil single": 0.0878671783,
+      "District heating": 0.1094517744,
+      "Heat pump water/water": 0.0952180114,
+      "Gas single": 0.094740544,
+      "Heat pump brine/water deep": 0.0909059729
+    },
+    "specific CO2 emissions": {
+      "Heat pump air/water": 0.0265957447,
+      "Heat pump brine/water shallow": 0.0597701149,
+      "Oil single": 0.3082474227,
+      "District heating": 0.1847058824,
+      "Heat pump water/water": 0.0280898876,
+      "Gas single": 0.3908045977,
+      "Heat pump brine/water deep": 0.1652631579
+    },
+    "total CO2 emissions": {
+      "Heat pump air/water": 3.1914893617,
+      "Heat pump brine/water shallow": 7.1724137931,
+      "Oil single": 36.9896907216,
+      "District heating": 22.1647058824,
+      "Heat pump water/water": 3.3707865169,
+      "Gas single": 46.8965517241,
+      "Heat pump brine/water deep": 19.8315789474
+    },
+    "CO2 costs": {
+      "Heat pump air/water": 6255.3191489362,
+      "Heat pump brine/water shallow": 6758.6206896552,
+      "Oil single": 6061.8556701031,
+      "District heating": 6917.6470588235,
+      "Heat pump water/water": 6606.7415730337,
+      "Gas single": 6758.6206896552,
+      "Heat pump brine/water deep": 6189.4736842105
+    },
+    "share of taxes": {
+      "Heat pump air/water": 39.0139956966,
+      "Heat pump brine/water shallow": 43.9982686415,
+      "Oil single": 37.6826637599,
+      "District heating": 44.8615261393,
+      "Heat pump water/water": 40.2001869472,
+      "Gas single": 41.9298941372,
+      "Heat pump brine/water deep": 38.5974105541
+    },
+    "final energy demand": {
+      "Heat pump air/water": 127.6595744681,
+      "Heat pump brine/water shallow": 137.9310344828,
+      "Oil single": 123.7113402062,
+      "District heating": 141.1764705882,
+      "Heat pump water/water": 134.8314606742,
+      "Gas single": 137.9310344828,
+      "Heat pump brine/water deep": 126.3157894737
+    },
+    "total costs heat supply": {
+      "Heat pump air/water": 26734.146718189,
+      "Heat pump brine/water shallow": 28970.9810790228,
+      "Oil single": 22743.9271388839,
+      "District heating": 28877.7899815838,
+      "Heat pump water/water": 24420.1409266082,
+      "Gas single": 24501.5737794812,
+      "Heat pump brine/water deep": 23563.0751170636
+    },
+    "energy costs": {
+      "Heat pump air/water": 8170.2127659574,
+      "Heat pump brine/water shallow": 9241.3793103448,
+      "Oil single": 6927.8350515464,
+      "District heating": 9176.4705882353,
+      "Heat pump water/water": 7280.8988764045,
+      "Gas single": 7448.275862069,
+      "Heat pump brine/water deep": 7200
+    },
+    "variable heat supply costs": {
+      "Heat pump air/water": 280,
+      "Heat pump brine/water shallow": 380,
+      "Oil single": 240,
+      "District heating": 300,
+      "Heat pump water/water": 220,
+      "Gas single": 260,
+      "Heat pump brine/water deep": 260
+    }
+  }
+}
