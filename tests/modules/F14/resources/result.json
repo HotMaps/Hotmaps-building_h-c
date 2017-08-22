@@ -1,6 +1,6 @@
-{
+ï»¿{
   "response": {
-    "LCOH [€/MWh]": {
+    "LCOH [â‚¬/MWh]": {
       "Heat pump air/water": 154.6994496019,
       "Heat pump brine/water shallow": 164.4133480723,
       "Oil single": 131.8007673945,
@@ -18,7 +18,7 @@
       "Gas single": 2586.4013656881,
       "Heat pump brine/water deep": 2713.6014328531
     },
-    "costs per capite [€/capita]": {
+    "costs per capite [â‚¬/capita]": {
       "Heat pump air/water": 0.1031329664,
       "Heat pump brine/water shallow": 0.1096088987,
       "Oil single": 0.0878671783,
