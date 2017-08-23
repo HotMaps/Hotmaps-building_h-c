@@ -27,7 +27,7 @@ def gen_tests(name, path, url, method):
         f_payload = f
         f_result = f_payload.replace( 'payload', 'result' )
 
-        test_method_str = "def test_%s_%s(): %s('%s', '%s', '%s')"%\
+        test_method_str = "def test_%s_%s(): %s('%s', r'%s', r'%s')"%\
                 (name, cnt, method, url, f_payload, f_result)
 
         tests.append( test_method_str )
