@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 api = Namespace('buildinghc', 'building hc')
 
 @api.route('/f14')
+@api.route('/Central-Heat-Supply/levelized-cost-of-heat')
 class F14(Resource):
     @api.response(schemas.F14Schema())
     @api.parameters(parameters.F14Parameter())
@@ -46,7 +47,4 @@ class F14(Resource):
         # response need to be defined in schema
         return {"response": f_14_ret }
 
-    @api.response(schemas.F14Schema())
-    def get(self):
-        return {"text": "hi 14 (get)"}
 

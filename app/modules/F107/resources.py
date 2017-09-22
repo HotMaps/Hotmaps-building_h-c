@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 api = Namespace('buildinghc', 'building hc')
 
 @api.route('/f107')
+@api.route('/Heat-Density-Maps/Scaling-HDM')
 class F107(Resource):
     @api.response(schemas.F107Schema())
     @api.parameters(parameters.F107Parameter())
@@ -40,7 +41,5 @@ class F107(Resource):
         # response need to be defined in schema
         return {"response": f_107_ret}
 
-    @api.response(schemas.F107Schema())
-    def get(self):
-        return {"text": "hi 107 (get)"}
+
 

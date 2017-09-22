@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 api = Namespace('buildinghc', 'building hc')
 
 @api.route('/f13')
+@api.route('/District-Heating-Potential/energetic_threshold')
 class F13(Resource):
     @api.response(schemas.F13Schema())
     @api.parameters(parameters.F13Parameter())
@@ -37,7 +38,4 @@ class F13(Resource):
         # text, response need to be defined in schema
         return {"response":  f_13_ret }
 
-    @api.response(schemas.F13Schema())
-    def get(self):
-        return {"text": "hi 13 (get)"}
 
