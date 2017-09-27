@@ -1,20 +1,31 @@
-HOTMAPS API Template
+HOTMAPS building_h-c API
 ==========================
 
-This project is a template of how we advice you to configure your app so it works with HOTMAPS
+This project is dedicated to the Hotmaps building_h-c API.
 
-It has been strongly inspired by the project of frol that you can find here: https://github.com/frol/flask-restplus-server-example#application-structure
+It's based on the Hotmaps API template that you can find here: [https://github.com/HotMaps/api-template](https://github.com/HotMaps/api-template).
 
 
 Project Structure
 -----------------
 
+### Features
+
+This repository includes the features developed within WP3 of the Hotmaps project: [http://www.hotmaps-project.eu](http://www.hotmaps-project.eu)
+A short description of each features can be found here:
+
+* [F13: Short Description](documentation/F_13.md)
+* [F14: Short Description](documentation/F_14.md)
+* [F63: Short Description](documentation/F_63.md)
+* [F107: Short Description](documentation/F_107.md)
+
 ### Root folder
 
 Folders:
 
-* `app` - Our template is here.
+* `app` - Our application is here.
 * `tests` - The unit test you will do on your project.
+* `documentation` - A short documentation of each feature.
 
 Files:
 
@@ -24,12 +35,13 @@ Files:
 * `.gitignore` - Lists files and file masks of the files which should not be
   added to git repository.
 * `Author` - A list of the person who have worked on the project and how to contact them
+* `LICENSE` - The used license
+* `docker_restart.sh` - File to run the docker container
 
 ### Application Structure
 
 ```
 app/
-├── requirements.txt
 ├── __init__.py
 ├── settings.py
 ├── extensions
@@ -49,18 +61,33 @@ app/
     │   ├── customFields.py
     │   ├── schemas.py
     │   ├── CM
-    │   │   └── TUW custom structures
+    │   │   └── Calculation modules for features
     │   ├── AD
-    │   │   └── TUW custom structures
+    │   │   └── dummy data for features
     │   └── FEAT
-    │   │   └── TUW custom structures
-    ├── F107
+    │   │   └── F13_district_heating_potential
+    │   │   └── F14_individual_heat_supply_costs_per_building
+    │   │   └── F63_bottomup_heat_density_map
+    │   │   └── F107_scaling_hdm
+    ├── F13
     │   ├── __init__.py
     │   ├── models.py
     │   ├── parameters.py
     │   ├── resources.py
     │   └── schemas.py
-    ├── (other API modules)
+    ├── F14
+    │   ├── __init__.py
+    │   ├── models.py
+    │   ├── parameters.py
+    │   ├── resources.py
+    │   └── schemas.py
+    ├── F63
+    │   ├── __init__.py
+    │   ├── models.py
+    │   ├── parameters.py
+    │   ├── resources.py
+    │   └── schemas.py
+    ├── F107
     │   ├── __init__.py
     │   ├── models.py
     │   ├── parameters.py
@@ -158,12 +185,16 @@ How to run the service ?
 Once you have configured your docker container in an appropriate way, you simply have to launch your app using those commands on the root repository of the project (where the Dockerfile is located)
 
 ```
-(sudo) docker build -t <name_of_docker_image> .
-(sudo) docker run --name <name_of_container> -p <host_port>:80 -d <name_of_docker_image> 
+(sudo) docker build -t hotmaps/building-hc .
+(sudo) docker run --name building-hc -p 9006:80 -d hotmaps/building-hc
 ```
+
+You can also use `docker_restart.sh` instead.
 
 The hostport is the port that will be used to access the service on the host machine. 
     Example: -p 8080:80 will run the service on the port 80 of the docker container and be accessible on the port 8080 of the host machine(localhost:8080/api/v1).
+
+On Windows 7: Use your docker machine ip (`docker-machine ip`)	
 
 This will launch the server using gunicorn and the wsgi file
 
@@ -189,6 +220,16 @@ route.
 Lastly, every `Resource` should have methods which are lowercased HTTP method
 names (i.e. `.get()`, `.post()`, etc). This is where users' requests end up.
 
+
+How to run tests ?
+--------------------------------
+cd tests
+
+copy `test_settings_example.py` to `test_settings.py`
+
+adapt `test_settings.py` (change localhost to ip)
+
+run pytest
 
 Dependencies
 ------------
@@ -238,7 +279,7 @@ $ git clone https://github.com/HotMaps/api-template
 #### Setup Environment
 
 You will need an installation of docker to run this
-you will need to connect port 80 of the container with port 9005 of the host using TCP and choose the dockerfile as deployment source
+you will need to connect port 80 of the container with port 9006 of the host using TCP and choose the dockerfile as deployment source
 
 #### Run Server
 
