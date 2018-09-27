@@ -16,6 +16,7 @@ A short description of each features can be found here:
 
 * [F13: Short Description](documentation/F_13.md)
 * [F14: Short Description](documentation/F_14.md)
+* [F23: Short Description](documentation/F_23.md)
 * [F63: Short Description](documentation/F_63.md)
 * [F107: Short Description](documentation/F_107.md)
 
@@ -67,6 +68,7 @@ app/
     │   └── FEAT
     │   │   └── F13_district_heating_potential
     │   │   └── F14_individual_heat_supply_costs_per_building
+    │   │   └── F23_district heating grid investment model
     │   │   └── F63_bottomup_heat_density_map
     │   │   └── F107_scaling_hdm
     ├── F13
@@ -76,6 +78,12 @@ app/
     │   ├── resources.py
     │   └── schemas.py
     ├── F14
+    │   ├── __init__.py
+    │   ├── models.py
+    │   ├── parameters.py
+    │   ├── resources.py
+    │   └── schemas.py
+    ├── F23
     │   ├── __init__.py
     │   ├── models.py
     │   ├── parameters.py
@@ -236,7 +244,7 @@ Dependencies
 
 ### Project Dependencies
 
-* [**Python**](https://www.python.org/) 2.7, 3.3+ / pypy2 (2.5.0)
+* [**Python**](https://www.python.org/) 3.5+ / pypy2 (2.5.0)
 * [**flask-restplus**](https://github.com/noirbizarre/flask-restplus) (+
   [*flask*](http://flask.pocoo.org/))
 * [**sqlalchemy**](http://www.sqlalchemy.org/) (+
