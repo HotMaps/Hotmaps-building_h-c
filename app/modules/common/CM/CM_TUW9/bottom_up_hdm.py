@@ -33,6 +33,8 @@ def zonStat_selectedArea(inputCSV, outRasterPath, population=0,
     the hotmaps toolbox since the multiplying factor matches to distances from
     the origin of the standard fishnet. The code assumes a resolution of
     100x100 m for the output.
+    annual building demand must be in kWh/a
+    output heat density map raster is in MWh/ha
     '''
     if isinstance(inputCSV, pd.DataFrame):
         ifile = inputCSV
@@ -70,8 +72,8 @@ def zonStat_selectedArea(inputCSV, outRasterPath, population=0,
     xWidth and yWidth in the following refer to columns and rows,
     respectively and should not wrongly be considered as coordination!
     '''
-    # kWh/ha = 10^(-4) * GWh/km2
-    sumDem = 0.0001 * sumDem.reshape((yWidth, xWidth))
+    # kWh/ha = 10^(-3) * MWh/ha
+    sumDem = 0.001 * sumDem.reshape((yWidth, xWidth))
     geo_transform = [rasterOrigin[0], resolution, 0
                      , rasterOrigin[1], 0, -resolution]
     CM19.main(outRasterPath, geo_transform, str(sumDem.dtype), sumDem)
@@ -84,9 +86,10 @@ def zonStat_selectedArea(inputCSV, outRasterPath, population=0,
         mean_dem_perCapita = abs_heat_demand/float(population)
     else:
         mean_dem_perCapita = np.nan
-#     print("Absolute heat demand: %0.1f GWh\n"
+#     print("Absolute heat demand: %0.1f GWh\a"
 #           "Mean heat demand per capita: %0.2f kWh\n"
 #           "Mean heat demand per heated surface (ave. specific demand): %0.2f"
+#           " kWh/m2"
 #           % (abs_heat_demand*10**(-6), mean_dem_perCapita, mean_spec_demand))
     return (abs_heat_demand*10**(-6), mean_dem_perCapita, mean_spec_demand)
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on July 24 2017
 
@@ -20,8 +19,7 @@ def ad_f107():
     data_warehouse = path + os.sep + 'data_warehouse'
     selected_area = data_warehouse + os.sep + 'AT312.shp'
     hdm_path = HDMAP(data_warehouse)
-    hdm = gdal.Open(hdm_path)
-    return selected_area, hdm
+    return selected_area, hdm_path
 
 
 if __name__ == "__main__":

@@ -19,8 +19,8 @@ def ad_f13():
     data_warehouse = path + os.sep + 'data_warehouse'
     heat_density_map = HDMAP(data_warehouse)
     region = data_warehouse + os.sep + 'AT.shp'
-    # in GWh/km2
-    pix_threshold = 10
+    # in MWh/ha
+    pix_threshold = 100
     # in GWh/a
     DH_threshold = 30
     return (heat_density_map, region, pix_threshold, DH_threshold)

@@ -30,7 +30,7 @@ Subsequently, the obtained shapefile is rasterized for further calculation
 purposes.
 - In the input CSV file, the name of columns corresponding to the specific
 demand MUST be "Residential" and "Service". This is because the other modules
-use the ouputs of this module and expect these names for the outputs.
+use the outputs of this module and expect these names for the outputs.
 '''
 
 
@@ -66,7 +66,7 @@ def gdal_rasterize(vector_fn, raster_fn, targetfield, pixel_size=100,
     return raster_fn
 
 
-def specific_demand(inShp, inCSV, outRasterPath):
+def specific_demand(inShp, inCSV, outRasterPath, epsg=3035):
     '''
     This function reads the input CSV file and save the specific demand values
     into the EU28 shapefile. The obtained shapefile is passed to the rasterize
@@ -84,7 +84,7 @@ def specific_demand(inShp, inCSV, outRasterPath):
     dict_df = {str: ogr.OFTString, int: ogr.OFTReal, float: ogr.OFTReal}
     # set CRS
     srs = osr.SpatialReference()
-    srs.ImportFromEPSG(3035)
+    srs.ImportFromEPSG(epsg)
     # Create the output Layer
     outDriver = ogr.GetDriverByName("ESRI Shapefile")
     # Remove output shapefile if it already exists

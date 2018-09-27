@@ -1,0 +1,16 @@
+{
+  "payload": {
+    "output_dir": "string",
+    "region": "string",
+    "start_year": "integer",
+    "last_year": "integer",
+    "depr_time": "integer",
+    "dh_connection_rate_1st_year": "float",
+    "dh_connection_rate_last_year": "float",
+    "accumulated_energy_saving": "float",
+    "interest_rate": "float",
+    "grid_cost_ceiling": "float",
+    "inShapefile": "string",
+    "response": {}
+  }
+}

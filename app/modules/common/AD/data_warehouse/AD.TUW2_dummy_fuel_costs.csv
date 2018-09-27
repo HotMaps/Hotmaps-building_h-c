@@ -1,0 +1,7 @@
+country,nuts0,year,fuel_type,fuel_cost [EUR/kwh]
+Austria,AT,2015,oil,0.15
+Austria,AT,2015,biomass,0.1
+Austria,AT,2015,electricity,0.19
+Austria,AT,2015,solar,0
+Austria,AT,2015,wood,0.1
+Austria,AT,2015,gas,0.08

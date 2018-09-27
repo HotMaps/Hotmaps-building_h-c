@@ -7,17 +7,14 @@ path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
 if path not in sys.path:
     sys.path.append(path)
 import CM.CM_TUW18.scaling_hdm as scale
+import CM.CM_TUW19.run_cm as CM19
+import CM.CM_TUW22.run_cm as CM22
+from CM.CM_TUW1.read_raster import raster_array as RA
 
 
-def main(hdm_cut, updated_demand):
-    new_distribution = scale.scaling(hdm_cut, updated_demand)
-    return new_distribution
-
-if __name__ == "__main__":
-    start = time.time()
-    hdm_cut = np.ones((50, 40))
-    updated_demand = 10
-    new_distribution = main(hdm_cut, updated_demand)
-    print(new_distribution)
-    elapsed = time.time() - start
-    print("%0.3f seconds" % elapsed)
+def main(hdm_path, selected_area, updated_demand_value, output_dir,
+         outRasterPath):
+    hdm, gt = RA(hdm_path, return_gt=True)
+    hdm_cut, geo_transform = CM22.main(hdm, selected_area, output_dir, gt,
+                                       nodata=0, return_array=True)
+    scale.scaling(hdm_cut, geo_transform, updated_demand_value, outRasterPath)

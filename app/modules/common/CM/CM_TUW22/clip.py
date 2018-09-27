@@ -1,14 +1,13 @@
 import os
 import sys
-import time
-from docutils.io import InputError
-from osgeo import gdal
+# from docutils.io import InputError
 from osgeo import gdalnumeric
 from osgeo import ogr
 from PIL import Image
 from PIL import ImageDraw
 import numpy as np
 import pandas as pd
+# import pdb
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
                                                        abspath(__file__))))
 if path not in sys.path:
@@ -24,34 +23,45 @@ def saveCSVorSHP(feat, demand, features_path, output_dir, prefix='',
     df['Sum'] = np.array(demand)
     csv_path = output_dir + os.sep + prefix + '_clip_result.csv'
     outShpPath = output_dir + os.sep + prefix + '_clip_result.shp'
+    new_csv_path = csv_path
+    new_outShpPath = outShpPath
+    i = 1
+    while os.path.exists(new_csv_path):
+        new_csv_path = csv_path[:-4] + ' (' + str(i) + ').csv'
+        i = i + 1
+    i = 1
+    while os.path.exists(new_outShpPath):
+        new_outShpPath = outShpPath[:-4] + ' (' + str(i) + ').shp'
+        i = i + 1
     if save2csv:
-        df.to_csv(csv_path)
+        df.to_csv(new_csv_path)
     if save2shp:
-        CM21.main(features_path, df, outShpPath, OutputSRS=OutputSRS)
+        CM21.main(features_path, df, new_outShpPath, OutputSRS=OutputSRS)
 
 
-def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
+def clip_raster(rast, features_path, output_dir, gt, nodata=-9999,
                 save2csv=None, save2raster=None, save2shp=None,
-                unit_multiplier=None, return_array=False, OutputSRS=3035):
+                unit_multiplier=None, return_array=False, OutputSRS=3035,
+                suffix_namefield=None, add_suffix=None):
     '''
-    Clips a raster (given as either a gdal.Dataset or as a numpy.array
-    instance) to a polygon layer provided by a Shapefile (or other vector
-    layer). If a numpy.array is given, a "GeoTransform" must be provided
-    (via dataset.GetGeoTransform() in GDAL). Returns an array. Clip features
-    can be multi-part geometry and with interior ring inside them.
-    
+    Clips a raster (given a numpy.array and its geo-transform array) to a
+    polygon layer provided by a Shapefile (or other vector layer). Returns an
+    array. Clip features can be multi-part geometry and with interior ring
+    inside them.
+
     The code supports most of raster and clip vector arrangements; however,
     it does not support cases in which clip vector extent (envlope of it) goes
     beyond more than 2 sides of the raster.
 
     Arguments:
-        rast               A gdal.Dataset or a NumPy array
+        rast               A NumPy array
         features_path      The path to the clipping layer
-        gt                 An optional GDAL GeoTransform to use instead
+        gt                 GDAL GeoTransform array
         nodata             The NoData value; defaults to -9999
         save2csv           should the outputs be saved in a csv file as well?
         unit_multiplier    Factor to be multiplied into the summation to
                            output the desired unit.
+        suffix_namefield   What to add at the end of the file name. must be field of shape file
     '''
 
     def image_to_array(i):
@@ -87,10 +97,6 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
         demand = []
     if unit_multiplier is None:
         unit_multiplier = 1.0
-    # Can accept either a gdal.Dataset or numpy.array instance
-    if not isinstance(rast, np.ndarray):
-        gt = rast.GetGeoTransform()
-        rast = rast.ReadAsArray()
     xRes, yRes = rast.shape
     # Create an OGR layer from a boundary shapefile
     features = ogr.Open(features_path)
@@ -107,6 +113,12 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
         '''
         poly = lyr.GetFeature(fid)
         geom = poly.GetGeometryRef()
+        if suffix_namefield is not None:
+            suffix = poly.GetField(suffix_namefield)
+            if add_suffix is not None:
+                suffix = '_'+ add_suffix + '_'+ suffix
+        else:
+            suffix = 'feature_' + str(fid)  
         # Convert the feature extent to image pixel coordinates
         minX, maxX, minY, maxY = geom.GetEnvelope()
         ulX, ulY = world_to_pixel(gt, minX, maxY)
@@ -209,8 +221,9 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
                     clip_new[mask_index[0]:mask_index[1],
                              mask_index[2]:mask_index[3]] = clip
                 else:
-                    raise InputError('Clip for the feature %d is not '
-                                     'supported' % fid)
+                    s = 1
+#                    raise InputError('Clip for the feature %d is not '
+#                                     'supported' % fid)
             m1, n1 = np.nonzero(clip_new)
             clip_stack = set(list(zip(m1, n1)))
             m2, n2 = np.nonzero(clip_complete)
@@ -239,9 +252,13 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
                 print('The sum of values within the region %s is: %0.1f'
                       % (nuts_region, dem_sum))
         if save2raster:
+            if not save2csv:
+                dem_sum = np.sum(clip_complete) * unit_multiplier
             if dem_sum > 0:
                 outRasterPath = output_dir + os.sep + shpName + '_feature_' + \
                                 str(fid) + '.tif'
+                outRasterPath = output_dir + os.sep + shpName + '_' + \
+                                suffix + '.tif'
                 CM19.main(outRasterPath, gt3, str(clip_complete.dtype),
                           clip_complete, 0)
     if save2csv or save2shp:
@@ -249,19 +266,3 @@ def clip_raster(rast, features_path, output_dir, gt=None, nodata=-9999,
                      save2csv, save2shp, OutputSRS=OutputSRS)
     if return_array:
         return clip_complete, gt3
-
-
-if __name__ == '__main__':
-    start = time.time()
-    # path to the src
-    data_warehouse = path + os.sep + 'AD/data_warehouse'
-    features_path = data_warehouse + os.sep + "AT_NUTS3.shp"
-    raster = data_warehouse + os.sep + "top_down_heat_density_map_v2_AT.tif"
-    output_dir = path + os.sep + 'Outputs'
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
-    nodata = 0
-    rast = gdal.Open(raster)
-    clip_raster(rast, features_path, output_dir, save2raster=True,
-                save2shp=True, save2csv=True, nodata=0)
-    print(time.time() - start)

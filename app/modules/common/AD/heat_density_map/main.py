@@ -7,7 +7,7 @@ import os
 
 
 def HDMAP(data_warehouse):
-    path_2_hdm = data_warehouse + '/top_down_heat_density_map_v2_AT.tif'
+    path_2_hdm = data_warehouse + '/heat_tot_curr_density_AT.tif'
     return path_2_hdm
 
 

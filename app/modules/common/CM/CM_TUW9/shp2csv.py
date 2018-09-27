@@ -36,6 +36,11 @@ shape fields: [a  b  c  d  e  f  g  h  i  j]
 fieldList :   [j  f  i  d]
 fIndex:       [9 -1  5  8  -1 3 -1 -1 -1 -1]
 newFieldList  [0  2  3  5]
+###############################################################################
+Units of input/output data:
+    GFA: [m2]
+    demand: [kWh/a]
+    spec_demand: [kWh/m2]
 '''
 
 
@@ -68,7 +73,7 @@ def indexing(UsefulDemandRaster, X, Y):
     return spec_demand
 
 
-def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
+def shp2csv(inShapefile, UsefulDemandRaster, outCSV, epsg=3035):
     # Get the input layer
     driver = ogr.GetDriverByName('ESRI Shapefile')
     inDataSet = driver.Open(inShapefile)
@@ -77,7 +82,7 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
     inSpatialRef = inLayer.GetSpatialRef()
     # Desired projection is EPSG3035
     outSpatialRef = osr.SpatialReference()
-    outSpatialRef.ImportFromEPSG(3035)
+    outSpatialRef.ImportFromEPSG(epsg)
     # Compare projection of input layer and the desired projection and
     # create the coordinate transformation parameter
     flag = False
@@ -129,11 +134,8 @@ def shp2csv(inShapefile, UsefulDemandRaster, outCSV):
         if flag:
             # change projection of the geometry
             geom.Transform(coordTrans)
-        # Creating the geom.Centroid() object takes significant time
-        # => Do this just ones
-        geom_Centroid = geom.Centroid()
-        fieldvalues[fid, xIndex] = geom_Centroid.GetX()
-        fieldvalues[fid, yIndex] = geom_Centroid.GetY()
+        fieldvalues[fid, xIndex] = geom.Centroid().GetX()
+        fieldvalues[fid, yIndex] = geom.Centroid().GetY()
         for item in newFieldList:
             fieldvalues[fid, item] = inFeature.GetField(int(fIndex[item]))
         '''

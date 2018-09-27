@@ -12,32 +12,37 @@ path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
                                                        abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
-'''
-This module gets a demand value and uses the default distribution of heat
-density map for distributing this value between pixels. The module returns a
-numpy array.
-'''
+import CM.CM_TUW19.run_cm as CM19
+from CM.CM_TUW0.rem_mk_dir import rm_mk_dir, rm_file
 
 
-def scaling(hdm_cut, updated_demand):
+def scaling(hdm_cut, hdm_cut_gt, updated_demand, outRasterPath):
     '''
-    HDM_cut:        a cut of DHM for the selected region. The unit of heat
-                    density is GWh/km2.
-    desired demand: the value in GWh which will be distributed as of default
-                    district heating map.
-    updated_demand: new demand value in GWh.
+    This module gets a demand value and uses the default distribution of heat
+    density map for distributing this value between pixels. The module returns
+    a numpy array.
+    hdm_cut:          numpy array showing demand in MWh/ha
+    hdm_cut_gt:       raster geo-transform
+    updated_demand:   in GWh/a
+    outRasterPath:    path for saving the updated hdm
     '''
-    # GWh/km2 to GWh/ha; and sum over pixel values
-    sum_demand_cut = np.sum(hdm_cut) * 0.01
+    # Sum over pixel values in MWh/ha and return in GWh
+    sum_demand_cut = np.sum(hdm_cut) * 0.001
     new_HDM_cut = updated_demand / sum_demand_cut * hdm_cut
-    return new_HDM_cut
+    rm_file(outRasterPath)
+    CM19.main(outRasterPath, hdm_cut_gt, "float32", new_HDM_cut)
+    return outRasterPath
 
 
 if __name__ == "__main__":
     start = time.time()
     hdm_cut = np.ones((50, 40))
+    hdm_cut_gt = [4600500.0, 100.0, 0.0, 2828000.0, 0.0, -100.0]
     updated_demand = 10
-    new_distribution = scaling(hdm_cut, updated_demand)
-    print(new_distribution)
+    out_dir = path + os.sep + 'Outputs'
+    rm_mk_dir(out_dir)
+    outRasterPath = out_dir + os.sep + 'hdm_scaled.tif'
+    new_distribution = scaling(hdm_cut, hdm_cut_gt, updated_demand,
+                               outRasterPath)
     elapsed = time.time() - start
     print("%0.3f seconds" % elapsed)

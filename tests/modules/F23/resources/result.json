@@ -1,0 +1,20 @@
+{
+  "response": {
+    'Total demand in selected region in the first year of investment [MWh]', 5431494.2936000824,
+    'Total demand in selected region in the last year of investment [MWh]', 4870908.5273571014,
+    'District heat demand [MWh]', 284924.26263237,
+    'Specific grid costs [EUR/MWh]', 24.935175278359917,
+    'Specific distribution grid costs [EUR/MWh]', 23.459805608333376,
+    'Specific transmission grid costs [EUR/MWh]', 1.4753696700265402,
+    'Distribution grid costs per meter [EUR/m]', 47.082226299511213,
+    'Transmission grid costs per meter [EUR/m]', 24.937024751546339,
+    'Grid costs [EUR]', 7104636.4297956005,
+    'Total distribution grid costs [EUR]', 6684267.814453125,
+    'Total transmission grid costs [EUR]', 420368.61534247501,
+    'Distribution line length [km]', 141.96908807381988,
+    'Transmission line length [km]', 16.85620808840309,
+    'Total number of coherent areas', 92,
+    'Number of selected coherent areas': 33.0
+    
+  }
+}

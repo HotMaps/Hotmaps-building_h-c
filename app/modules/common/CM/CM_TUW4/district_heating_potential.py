@@ -7,25 +7,25 @@ Created on July 11 2017
 import os
 import sys
 import time
-from osgeo import gdal
 from osgeo import ogr
 import numpy as np
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import binary_fill_holes
 from scipy.ndimage import measurements
+from docutils.io import InputError
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.
                                                        abspath(__file__))))
 if path not in sys.path:
     sys.path.append(path)
+from CM.CM_TUW1.read_raster import read_raster_by_feature as RAbF
 import CM.CM_TUW20.run_cm as CM20
-from AD.heat_density_map.main import HDMAP
 '''
-The input for this calculation module is "heat density map" with [GWh/km2]
-unit. The output of this calculation module is set of connected pixels to
-which the potential of that connected pixels in [GWh] is assigned.
-pixel_threshold in [GWh/km2]
-DH_threshold in [GWh/annum]
+The input for this calculation module is "heat density map" with [MWh/ha]
+unit. The output of this calculation module is a shapefile showing the
+coherent areas with their DH potential.
+pixel_threshold in [MWh/ha]
+DH_threshold in [GWh/year]
 '''
 verbose = False
 
@@ -43,7 +43,8 @@ def DHRegions(DH, DH_threshold):
     DH_expanded = binary_dilation(DH, structure=struct)
     DH_connected = binary_erosion(DH_expanded, structure=struct)
     # fills the holes within the connected components
-    DH_noHole = binary_fill_holes(DH_connected)
+    # DH_noHole = binary_fill_holes(DH_connected)
+    DH_noHole = DH_connected
     # label the connected components
     struct = np.ones((3, 3)).astype(int)
     labels, numLabels = measurements.label(DH_noHole, structure=struct)
@@ -81,9 +82,9 @@ def DHRegions(DH, DH_threshold):
         st = np.concatenate((np.zeros((1)), end[0:numLabels-1]))
         for i in range(numLabels):
             # sum over sparseDH
-            # input: [GWh/km2] for each ha --> to get potential in GWh it
-            # should be multiplied by 0.01
-            pot = 0.01 * np.sum(sortedSparseData[int(st[i]):int(end[i]), 3])
+            # input: [MWh/ha] for each ha --> summation returns MWh for the
+            # coherent area
+            pot = np.sum(sortedSparseData[int(st[i]):int(end[i]), 3])
             if pot >= DH_threshold:
                 # here should be i+1 because labeling starts from one and not
                 # from zero
@@ -111,33 +112,47 @@ def DHPotential(DH_Regions, HD):
     end = np.cumsum(counts)
     st = np.concatenate((np.zeros((1)), end[0:numLabels-1]))
     for i in range(numLabels):
-        # input: [GWh/km2] for each ha --> to get potential in GWh it
-        # should be multiplied by 0.01
-        DHPot[i+1] = 0.01 * np.sum(sortedSparseData[int(st[i]):int(end[i]), 3])
-    DH_Potential = DHPot[labels]
-    return DH_Potential
+        # input: [MWh/ha] for each ha --> to get potential in GWh it
+        # should be multiplied by 0.001
+        DHPot[i+1] = 0.001*np.sum(sortedSparseData[int(st[i]):int(end[i]), 3])
+    # remove zero from DHPot
+    DHPot = DHPot[1::]
+    # potential of each coherent area in GWh is assigned to its pixels
+    return DHPot, labels
 
 
-def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
+def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold,
+          in_orig=None):
+    # Factor 1000 for conversion from GWh/a to MWh/a
+    DH_threshold = DH_threshold * 1000
+    flag1 = False
+    flag2 = False
+    if isinstance(heat_density_map, str):
+        arr1, gt = RAbF(strd_vector_path, heat_density_map, return_gt=True)
+        minx, maxy = gt[0], gt[3]
+        flag1 = True
+    elif isinstance(heat_density_map, np.ndarray):
+        flag2 = True
+    # read vector layer
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
     inDataSource = inDriver.Open(strd_vector_path, 0)
     inLayer = inDataSource.GetLayer()
-    shp_minX, shp_maxX, shp_minY, shp_maxY = inLayer.GetExtent()
-    cutRastDatasource = gdal.Open(heat_density_map)
-    transform = cutRastDatasource.GetGeoTransform()
-    minx = transform[0]
-    maxy = transform[3]
-    b11 = cutRastDatasource.GetRasterBand(1)
-    arr1 = b11.ReadAsArray().astype(float)
-    (dimX0, dimY0) = arr1.shape
-    (lowIndexX, upIndexX, lowIndexY, upIndexY) = CM20.main(minx, maxy,
-                                                           dimX0, dimY0,
-                                                           shp_minX, shp_maxX,
-                                                           shp_minY, shp_maxY)
-    minx = minx + 100 * lowIndexY
-    maxy = maxy - 100 * lowIndexX
+    if flag2:
+        if not in_orig:
+            raise TypeError('The raster origin is of None type!')
+        minx, maxy = in_orig[0], in_orig[1]
+        shp_minX, shp_maxX, shp_minY, shp_maxY = inLayer.GetExtent()
+        (dimX0, dimY0) = heat_density_map.shape
+        (lowIndexX, upIndexX, lowIndexY, upIndexY) = CM20.main(minx, maxy,
+                                                               dimX0, dimY0,
+                                                               shp_minX, shp_maxX,
+                                                               shp_minY, shp_maxY)
+        minx = minx + 100 * lowIndexY
+        maxy = maxy - 100 * lowIndexX
+        arr1 = heat_density_map[lowIndexX:upIndexX, lowIndexY:upIndexY]
+    if not (flag1 or flag2):
+        raise InputError('The heat density map/array is not valid!')
     rasterOrigin = (minx, maxy)
-    arr1 = arr1[lowIndexX:upIndexX, lowIndexY:upIndexY]
     DH = arr1 * (arr1 > pix_threshold)
     (dimX, dimY) = DH.shape
     DH_Regions = np.zeros((dimX, dimY)).astype(bool)
@@ -153,7 +168,6 @@ def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
                                                                dimX, dimY,
                                                                fminx, fmaxx,
                                                                fminy, fmaxy)
-        # rasterOrigin2 = (minx + lowIndexY*100, maxy - lowIndexX*100)
         arr_out = DH[lowIndexX:upIndexX, lowIndexY:upIndexY]
         DH_Selected_Region = DHRegions(arr_out, DH_threshold)
         DH_Regions[lowIndexX:upIndexX,
@@ -166,14 +180,14 @@ def DHReg(heat_density_map, strd_vector_path, pix_threshold, DH_threshold):
 if __name__ == "__main__":
     start = time.time()
     data_warehouse = path + os.sep + 'AD/data_warehouse'
-    heat_density_map = HDMAP(data_warehouse)
+    heat_density_map = data_warehouse + os.sep + 'heat_tot_curr_density_AT.tif'
     region = data_warehouse + os.sep + 'AT.shp'
     output_dir = path + os.sep + 'Outputs'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     outRasterPath = output_dir + os.sep + 'Pot_AT_TH30.tif'
-    # pix_threshold [GWh/km2]
-    pix_threshold = 10
+    # pix_threshold [MWh/ha]
+    pix_threshold = 100
     # DH_threshold [GWh/a]
     DH_threshold = 30
     output = DHReg(heat_density_map, region, pix_threshold, DH_threshold)

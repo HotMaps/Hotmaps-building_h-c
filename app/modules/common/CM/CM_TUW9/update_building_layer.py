@@ -21,7 +21,7 @@ features of this shapefile.
 '''
 
 
-def update_building_lyr(inputCSV, inShapefile, outShapefile):
+def update_building_lyr(inputCSV, inShapefile, outShapefile, epsg=3035):
     # fields in CSV are as follows:
     # ['hotmaps_ID', 'inputLyr_ID', 'Type', 'Year_Construction', 'Address',
     # 'Footprint', 'NrFloor', 'GFA', 'spec_demand', 'demand', 'X_3035',
@@ -37,7 +37,7 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
     inLayer = inDataSource.GetLayer()
     # set CRS
     srs = osr.SpatialReference()
-    srs.ImportFromEPSG(3035)
+    srs.ImportFromEPSG(epsg)
     outDriver = ogr.GetDriverByName("ESRI Shapefile")
     if os.path.exists(outShapefile):
         outDriver.DeleteDataSource(outShapefile)
@@ -51,7 +51,7 @@ def update_building_lyr(inputCSV, inShapefile, outShapefile):
                                          geom_type=geom_typ_dict[geom_typ])
     for i, item in enumerate(csv_cols):
         # shapefile's field name should not exceed 10 characters. O.W. warning
-        # will be printed. To avodi waning, the following is applied:
+        # will be printed. To avoid waning, the following is applied:
         item = item[:10]
         if i > 0:
             if col_dtype[i] == object:

@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import numpy as np
-from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 import pandas as pd
@@ -19,7 +18,8 @@ inputs:
 '''
 
 
-def csv2shapefile(inShpPath, inCSV, outShpPath, id_field='id', OutputSRS=3035):
+def csv2shapefile(inShpPath, inCSV, outShpPath, id_field='id', shp_id_field=0,
+                  OutputSRS=3035):
     # read the input shapefile
     inShapefile = inShpPath
     inDriver = ogr.GetDriverByName("ESRI Shapefile")
@@ -47,7 +47,7 @@ def csv2shapefile(inShpPath, inCSV, outShpPath, id_field='id', OutputSRS=3035):
     else:
         ifile = inCSV
     df = ifile.values
-    ID = ifile[id_field]
+    ID = ifile[id_field].astype(str)
     check_null = ifile.notnull().values
     # read the headers (first row of each column)
     fieldNames = ifile.columns.values
@@ -73,15 +73,14 @@ def csv2shapefile(inShpPath, inCSV, outShpPath, id_field='id', OutputSRS=3035):
         inFeature = inLayer.GetFeature(i)
         # Create output Feature
         outFeature = ogr.Feature(outLayerDefn)
-        temp1 = inFeature.GetField(0)
+        temp1 = inFeature.GetField(shp_id_field)
         # find the row in CSV file which corresponds to the NUTS region
         # obtained from temp1.
-        temp2 = np.argwhere(ID == temp1)
+        temp2 = np.argwhere(ID == str(temp1))
         for j in range(len(fieldNames)):
             temp0 = check_null[temp2, j]
             if temp0:
                 temp = df[temp2, j][0][0]
-                # change str(temp) according to the input file
                 outFeature.SetField(outLayerDefn.GetFieldDefn(j).GetNameRef(),
                                     temp)
         geom = inFeature.GetGeometryRef()

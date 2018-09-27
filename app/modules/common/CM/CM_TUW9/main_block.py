@@ -47,6 +47,12 @@ def main(process_bool, inputValues):
     inputCSV = outCSV
     start = time.time()
     outputs = zs(inputCSV, heatDensityRaster, population)
+    """
+    Outputs are:
+        Absolute heat demand: [GWh\a]
+        Mean heat demand per capita: [kWh\n]
+        Mean heat demand per heated surface (ave. specific demand): [kWh/m2]
+    """
     if verbose:
         print('Process 4 took: %0.2f seconds' % (time.time() - start))
     return outputs, outCSV, outShapefile, heatDensityRaster
